@@ -1,0 +1,72 @@
+[
+  {
+    "id": "raka-hutagalung",
+    "name": "Raka Bimasena Hutagalung",
+    "nickname": "Raka",
+    "team": "research",
+    "role": "Lead Researcher",
+    "generation": "2023",
+    "major": "Informatics",
+    "nrp": "5025221033",
+    "photo": "https://picsum.photos/seed/ncc-raka/600/750",
+    "email": "raka.hutagalung@student.its.ac.id",
+    "instagram": "@rakabhg",
+    "bio": "Raka leads the network security track, currently working on anomaly detection for IoT traffic under Prof. Tohari Ahmad."
+  },
+  {
+    "id": "salsabila-rahmadani",
+    "name": "Salsabila Putri Rahmadani",
+    "nickname": "Salsa",
+    "team": "research",
+    "role": "Researcher",
+    "generation": "2023",
+    "major": "Informatics",
+    "nrp": "5025221067",
+    "photo": "https://picsum.photos/seed/ncc-salsa/600/750",
+    "email": "salsabila.rahmadani@student.its.ac.id",
+    "instagram": "@salsabilapr",
+    "bio": "Salsa works on digital forensics tooling, focused on memory-artifact recovery for mobile platforms."
+  },
+  {
+    "id": "bimo-anggara",
+    "name": "Bimo Anggara Putra",
+    "nickname": "Bimo",
+    "team": "research",
+    "role": "Researcher",
+    "generation": "2023",
+    "major": "Informatics",
+    "nrp": "5025221091",
+    "photo": "https://picsum.photos/seed/ncc-bimo/600/750",
+    "email": "bimo.anggara@student.its.ac.id",
+    "instagram": "@bimoanggr",
+    "bio": "Bimo researches multimedia network protocols, with a current focus on adaptive video streaming under constrained bandwidth."
+  },
+  {
+    "id": "clarissa-wijaya",
+    "name": "Clarissa Amelia Wijaya",
+    "nickname": "Clarissa",
+    "team": "research",
+    "role": "Researcher",
+    "generation": "2024",
+    "major": "Informatics",
+    "nrp": "5025231019",
+    "photo": "https://picsum.photos/seed/ncc-clarissa/600/750",
+    "email": "clarissa.wijaya@student.its.ac.id",
+    "instagram": "@clarissaamw",
+    "bio": "Clarissa is investigating pervasive computing patterns for low-power campus sensor networks."
+  },
+  {
+    "id": "galang-nararya",
+    "name": "Galang Nararya Putra",
+    "nickname": "Galang",
+    "team": "research",
+    "role": "Researcher",
+    "generation": "2024",
+    "major": "Informatics",
+    "nrp": "5025231042",
+    "photo": "https://picsum.photos/seed/ncc-galang/600/750",
+    "email": "galang.nararya@student.its.ac.id",
+    "instagram": "@galangnrr",
+    "bio": "Galang works on cloud computing cost models, benchmarking autoscaling strategies for lab-hosted services."
+  }
+]

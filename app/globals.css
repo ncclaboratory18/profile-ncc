@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+
+  /* NCC Lab palette v2 — ncc-lab-design-direction-v2.md
+     Hierarchy from luminance (white-opacity steps) + hairline borders,
+     not from more color. Blue is reserved for interactive states only. */
+  --bg-primary: #05070a;
+  --bg-surface: #0a1236;
+  --bg-surface-raised: #272e4e;
+  --bg-surface-active: #404662;
+
+  --accent-blue: #0e74bc;
+  --accent-blue-hover: #3289c6;
+  --accent-blue-border-hover: rgba(14, 116, 188, 0.4);
+  --accent-blue-ring: rgba(14, 116, 188, 0.35);
+  --accent-blue-text: #3b9fe0;
+
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-tertiary: rgba(255, 255, 255, 0.45);
+
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.16);
+  --success: #2fb864;
+
+  --radius-control: 8px;
+  --radius-card: 14px;
+  --radius-chip: 999px;
+
+  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-surface-raised: var(--bg-surface-raised);
+  --color-bg-surface-active: var(--bg-surface-active);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-blue-hover: var(--accent-blue-hover);
+  --color-accent-blue-border-hover: var(--accent-blue-border-hover);
+  --color-accent-blue-text: var(--accent-blue-text);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-success: var(--success);
+
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+  --radius-chip: var(--radius-chip);
+
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--accent-blue);
+  color: var(--text-primary);
+}
+
+/* Accent-glow focus ring — replaces the default outline everywhere, never removed without it */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-blue-ring);
+  border-radius: var(--radius-control);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

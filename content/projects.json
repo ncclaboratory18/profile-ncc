@@ -1,0 +1,23 @@
+[
+  {
+    "id": "iot-anomaly-detection",
+    "title": "IoT Traffic Anomaly Detection",
+    "description": "Documentation for this project is coming soon.",
+    "status": "ongoing",
+    "images": []
+  },
+  {
+    "id": "mobile-forensics-toolkit",
+    "title": "Mobile Forensics Toolkit",
+    "description": "Documentation for this project is coming soon.",
+    "status": "ongoing",
+    "images": []
+  },
+  {
+    "id": "campus-sensor-mesh",
+    "title": "Campus Sensor Mesh",
+    "description": "Documentation for this project is coming soon.",
+    "status": "completed",
+    "images": []
+  }
+]
