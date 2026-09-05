@@ -1,0 +1,16 @@
+services:
+  app:
+    build:
+      context: .
+      target: runner
+    container_name: profile-ncc-app
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    networks:
+      - profile-ncc
+
+networks:
+  profile-ncc:
+    driver: bridge
+    name: profile-ncc
