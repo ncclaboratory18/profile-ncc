@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="shortcut icon" type="x-icon" href="../image/logo_lipist.png" />
+    <meta http-equiv="X-UA-Compatible" content="IE-edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Data Pendaftar</title>
+    <link rel="stylesheet" href="css/lihat_pendaftar.css" />
+    <script src="js/lihat_pendaftar.js" defer></script>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="admin-header">
+        <h1><i class="bx bx-data"></i> Data Pendaftar ETAP 2026</h1>
+        <div class="header-actions">
+            <div class="search-box">
+                <i class="bx bx-search"></i>
+                <input type="text" id="search-input" placeholder="Cari nama, email, instansi...">
+            </div>
+            <button class="btn-refresh" id="btn-refresh" title="Refresh data">
+                <i class="bx bx-refresh"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span class="stat-label">Total Pendaftar</span>
+            <span class="stat-value" id="stat-total">-</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Approved</span>
+            <span class="stat-value stat-approved" id="stat-approved">-</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Mahasiswa</span>
+            <span class="stat-value" id="stat-mahasiswa">-</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Umum</span>
+            <span class="stat-value" id="stat-umum">-</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Online</span>
+            <span class="stat-value" id="stat-online">-</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Offline</span>
+            <span class="stat-value" id="stat-offline">-</span>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <div class="loading" id="loading">
+            <i class="bx bx-loader-alt bx-spin"></i>
+            <p>Memuat data...</p>
+        </div>
+        <div class="error-msg" id="error-msg" style="display:none;"></div>
+        <table id="data-table" style="display:none;">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Status</th>
+                    <th>Approve</th>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>NIM/NIK</th>
+                    <th>WhatsApp</th>
+                    <th>Instansi</th>
+                    <th>Kategori</th>
+                    <th>Paket</th>
+                    <th>Pelatihan</th>
+                    <th>KTM</th>
+                    <th>Bukti Bayar</th>
+                    <th>Tanggal</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+        <p class="empty-msg" id="empty-msg" style="display:none;">Belum ada data pendaftar.</p>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <h3><i class="bx bx-error-circle"></i> Konfirmasi Hapus</h3>
+            <p>Apakah Anda yakin ingin menghapus pendaftar <strong id="modal-name"></strong>?</p>
+            <p class="modal-warning">Data dan file yang diupload akan dihapus permanen.</p>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" id="modal-cancel">Batal</button>
+                <button class="btn-modal btn-delete" id="modal-confirm">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

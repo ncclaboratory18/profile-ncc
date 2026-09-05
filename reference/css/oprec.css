@@ -1,0 +1,811 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "poppins", "sans-serif";
+}
+
+body {
+  min-height: 100vh;
+  background: rgb(27, 27, 27);
+}
+
+
+/*=============== HEADER ===============*/
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 100px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    z-index: 100;
+  }
+  .header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    transition: 0.5s;
+  }
+  .header:hover::before {
+    left: 100%;
+  }
+  .logo {
+    color: #fff;
+    font-size: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: default;
+  }
+  .navbar a {
+    color: #fff;
+    font-size: 18px;
+    text-decoration: none;
+    margin-left: 35px;
+    transition: 0.3s;
+  }
+  .navbar a:hover {
+    color: rgb(0, 204, 255);
+  }
+  #menu-icon {
+    font-size: 36px;
+    color: #fff;
+    display: none;
+  }
+  
+  #check {
+    display: none;
+  }
+  
+  .logo {
+    color: white;
+  }
+  
+  #logo-nav {
+    max-width: 70%;
+  }
+  
+  .navbar a {
+    font-size: 1.2rem;
+    color: white;
+    text-decoration: none;
+    font-weight: 400;
+    margin-left: 2rem;
+  }
+  
+  .icons {
+    position: absolute;
+    right: 5%;
+    font-size: 2.8rem;
+    color: white;
+    cursor: pointer;
+    display: none;
+  }
+  
+  #content {
+    position: relative;
+    max-height: 500px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  
+  #background {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0 0 50px 50px;
+    filter: brightness(75%);
+    z-index: 0;
+  }
+
+
+  /*=============== Page 1 ===============*/
+
+  .pc-container {
+    position: relative;
+    width: 80%;
+    color: white;
+    margin: 0 auto;
+    top: -100px;
+    bottom: 0;
+    padding: 2rem;
+    min-height: 300px;
+    background: linear-gradient(
+      rgba(255, 255, 255, 0.1),
+      rgba(255, 255, 255, 0.15),
+      rgba(255, 255, 255, 0.1)
+    );
+    border-radius: 40px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+  
+  .intro-content {
+    font-family: "poppins", "sans-serif";
+    width: 90%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  
+  .logo-events {
+    margin-right: 60px;
+    min-width: 10%;
+    max-width: 20%;
+    height: auto;
+  }
+  
+  .descriptions {
+    flex: 1;
+  }
+  
+  .line {
+    width: 100%;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin-top: 1rem;
+    margin-bottom: 0.9rem;
+  }
+  
+  h1 {
+    font-size: 40px;
+    margin-bottom: 0.5rem;
+    /* 5px */
+  }
+  
+  h2 {
+    font-size: 18px;
+    font-weight: 400;
+  }
+  
+  h3 {
+    font-size: 23px;
+    font-weight: 600;
+  }
+  
+  p {
+    color: rgb(206, 206, 206);
+  }
+  
+  h2,
+  h3,
+  p {
+    margin-top: 0.5rem;
+    /* 5px */
+    margin-bottom: 0.5rem;
+    /* 5px */
+  }
+  
+  .button-pendaftaran {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: #ffff;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 1.05rem;
+  }
+  
+  .button-pendaftaran:hover,
+  .button-pendaftaran:focus {
+    background-color: #bcbcbc;
+  }
+  
+  .button-pendaftaran i {
+    margin-right: 10px;
+  }
+  
+  .mobile-container {
+    width: 80%;
+    color: #fff;
+    top: 100px;
+  }
+  
+  .mobile-container {
+    width: 100%;
+    color: #fff;
+    top: 100px;
+  }
+  
+  .logo-mobile-events {
+    width: 40%;
+    margin: 50px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 50%;
+  }
+  
+  .intro-mobile-content {
+    font-family: "poppins", "sans-serif";
+    width: 80%;
+    margin: 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mobile-descriptions {
+    margin-top: 16px;
+    /* Add some spacing between the logo and the text */
+  }
+  
+  .mobile-descriptions p {
+    margin-bottom: 10px;
+    /* Add paragraph spacing of 10px */
+  }
+
+
+  /*=============== Page 2 ===============*/
+
+.ketua {
+    display: flex;
+    justify-content: center;
+    padding-top: 100px;
+    padding-bottom: 10vh;
+  }
+  
+  .page4 {
+    display: flex;
+    align-items: center; /* Add this line */
+    max-width: 80%;
+    gap: 50px;
+    color: #fff;
+    margin: 0 auto;
+    flex-direction: row-reverse;
+  }
+  
+  .poster-event2 {
+    max-width: 40%;
+    /* Adjust as needed */
+  }
+  
+  .isi4 {
+    width: 60%; /* Adjust as needed */
+  }
+  
+  .isi4 p2 {
+    color: gray;
+  }
+  
+  .isi4 h1 {
+    font-size: 4rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  .isi4 h4 {
+    font-size: 2.5rem;
+    font-weight: 500;
+    margin-top: 1rem;
+  }
+  
+  .isi4 h3 {
+    font-size: 4rem;
+    font-weight: 500;
+    color: rgb(0, 183, 255);
+    line-height: 1.5;
+  }
+  
+  .isi4 p {
+    color: white;
+    font-size: 1em;
+  }
+
+
+   /*=============== Page 3 ===============*/
+   .modules {
+    max-width: 80%;
+    margin: auto;
+    padding: 5rem 2rem;
+  }
+  
+  .judul-modul {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 500;
+    color: #fff;
+    text-align: center;
+  }
+  
+  .features {
+    margin-top: 4rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+  
+  .features .card {
+    background-color: #27272a;
+    padding: 1rem;
+    border: 2px solid transparent;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+  }
+  
+  .features .card:hover {
+    background-color: #323232;
+    border-color: #fff;
+  }
+  
+  .features .card span {
+    display: inline-block;
+    background-color: #1e40af;
+    padding: 2px 9px;
+    margin-bottom: 1rem;
+    font-size: 1.75rem;
+    color: #fff;
+    border-radius: 5px;
+  }
+  
+  .features .card h4 {
+    margin-bottom: 0.5rem;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+  
+  .features .card p {
+    color: #ccc;
+    margin-bottom: 1rem;
+  }
+  
+  .features .card a {
+    color: #fff;
+    transition: all 0.3s ease;
+  }
+  
+  .features .card a:hover {
+    color: #1e40af;
+  }
+  
+  /*----MAIN PARTS---*/
+  
+  .modules2 {
+    max-width: 80%;
+    margin: auto;
+    padding: 5rem 2rem;
+  }
+  
+  .features .card h7 {
+    margin-bottom: 0.5rem;
+    color: #00d9ff;
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  .features .card h8 {
+    margin-bottom: 0.5rem;
+    color: #ff7dde;
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  .features .card h9 {
+    margin-bottom: 0.5rem;
+    color: #fffc63;
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  .features .card h10 {
+    margin-bottom: 0.5rem;
+    color: #45ff7d;
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  
+  .features .card h6 {
+    margin-bottom: 0.5rem;
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 2;
+  }
+  
+  .features .card p {
+    color: #ccc;
+    line-height: 1;
+  }
+  
+  .features .card p1 {
+    color: #ffffff;
+    line-height: 1;
+  }
+  .sub-online-harga {
+    max-width: 600px;
+    margin: auto;
+    text-align: center;
+    color: #ccc;
+  }
+  
+  .logo_ta {
+    max-width: 30%;
+  }
+  
+  .features .card h5 {
+    font-size: 5rem;
+  }
+  
+  .sub-offline-harga {
+    max-width: 600px;
+    margin: auto;
+    text-align: center;
+    color: #ccc;
+  }
+  
+  .mobile-container {
+    width: 80%;
+    color: #fff;
+    top: 100px;
+  }
+  
+  .mobile-container {
+    width: 100%;
+    color: #fff;
+    top: 100px;
+  }
+  
+  .logo-mobile-events {
+    width: 40%;
+    margin: 50px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 50%;
+  }
+  
+  .intro-mobile-content {
+    font-family: "poppins", "sans-serif";
+    width: 80%;
+    margin: 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mobile-descriptions {
+    margin-top: 16px;
+    /* Add some spacing between the logo and the text */
+  }
+  
+  .mobile-descriptions p {
+    margin-bottom: 10px;
+    /* Add paragraph spacing of 10px */
+  }
+
+
+/*=============== FOOTER ===============*/
+  footer {
+    bottom: 0;
+  }
+  
+  @media (max-height: 800px) {
+    footer {
+      position: static;
+    }
+  
+    header {
+      padding-top: 40px;
+    }
+  }
+  
+  .footer-distributed {
+    background-color: #000;
+    box-sizing: border-box;
+    width: 100%;
+    text-align: left;
+    font: bold 16px sans-serif;
+    padding: 50px 50px 60px 50px;
+    margin-top: 80px;
+  }
+  
+  .footer-distributed .footer-left,
+  .footer-distributed .footer-center,
+  .footer-distributed .footer-right {
+    display: inline-block;
+    vertical-align: top;
+  }
+  
+  /* Footer left */
+  
+  .footer-distributed .footer-left {
+    width: 30%;
+  }
+  
+  .footer-distributed h3 {
+    color: #ffffff;
+    font: normal 36px "Cookie", cursive;
+    margin: 0;
+  }
+  
+  .footer-distributed h3 span {
+    color: #e0ac1c;
+  }
+  
+  /* Footer links */
+  
+  .footer-distributed .footer-links {
+    color: #ffffff;
+    margin: 20px 0 12px;
+  }
+  
+  .footer-distributed .footer-links a {
+    display: inline-block;
+    line-height: 1.8;
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .footer-distributed .footer-company-name {
+    color: #8f9296;
+    font-size: 14px;
+    font-weight: normal;
+    margin: 0;
+  }
+  
+  /* Footer Center */
+  
+  .footer-distributed .footer-center {
+    width: 35%;
+  }
+  
+  .footer-distributed .footer-center i {
+    background-color: #33383b;
+    color: #ffffff;
+    font-size: 25px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 42px;
+    margin: 10px 15px;
+    vertical-align: middle;
+  }
+  
+  .footer-distributed .footer-center i.fa-envelope {
+    font-size: 17px;
+    line-height: 38px;
+  }
+  
+  .footer-distributed .footer-center p {
+    display: inline-block;
+    color: #ffffff;
+    vertical-align: middle;
+    margin: 0;
+  }
+  
+  .footer-distributed .footer-center p span {
+    display: block;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 2;
+  }
+  
+  .footer-distributed .footer-center p a {
+    color: #00b7ff;
+    text-decoration: none;
+  }
+  
+  /* Footer Right */
+  
+  .footer-distributed .footer-right {
+    width: 30%;
+  }
+  
+  .footer-distributed .footer-company-about {
+    line-height: 20px;
+    color: #92999f;
+    font-size: 13px;
+    font-weight: normal;
+    margin: 0;
+  }
+  
+  .footer-distributed .footer-company-about span {
+    display: block;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .footer-distributed .footer-icons {
+    margin-top: 25px;
+  }
+  
+  .footer-distributed .footer-icons a {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    background-color: #33383b;
+    border-radius: 2px;
+    font-size: 20px;
+    color: #ffffff;
+    text-align: center;
+    line-height: 35px;
+    margin-right: 3px;
+    margin-bottom: 5px;
+  }
+  
+  .footer-distributed .footer-icons a:hover {
+    background-color: #00bfff;
+  }
+  
+  .footer-links a:hover {
+    color: #00bbff;
+  }
+  
+
+  /*=============== BREAKPOINTS ===============*/
+
+  @media (width>993px) {
+    .mobile-container {
+      display: none;
+    }
+  }
+  
+  @media (width<992px) {
+    .header {
+      padding: 1.25rem 4%;
+    }
+    /*.header {
+          padding: 1.3rem 5%;
+      }*/
+  
+    .pc-container {
+      display: none;
+    }
+  
+    .intro-mobile-content {
+      flex-direction: row;
+      /* Change this to make the child elements align horizontally */
+    }
+  
+    .features {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    .pricing {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    .footer-distributed .footer-left,
+    .footer-distributed .footer-center,
+    .footer-distributed .footer-right {
+      display: block;
+      width: 100%;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+  
+    .footer-distributed .footer-center i {
+      margin-left: 0;
+    }
+  
+    .main-content {
+      flex-direction: column;
+    }
+  
+    .poster-event {
+      min-width: 20%;
+      margin: 0 auto;
+    }
+  
+    .main-descriptions {
+      width: 100%;
+    }
+
+    
+  }
+  
+
+
+/*=============== BREAKPOINTS ===============*/
+  @media (width<768px) {
+    #menu-icon {
+      display: block;
+      cursor: pointer;
+    }
+    .navbar {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      padding: 0.5rem 4%;
+      display: none;
+    }
+    .navbar.active {
+      display: block;
+    }
+    .navbar a {
+      display: block;
+      margin: 1.5rem 0;
+    }
+    .nav-bg {
+      position: fixed;
+      top: 79px;
+      left: 0;
+      width: 100%;
+      height: 295px;
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      z-index: 99;
+      display: none;
+    }
+    .nav-bg.active {
+      display: block;
+    }
+
+    /* Page 2 */
+  .page4 {
+    flex-direction: column-reverse;
+    width: 100%; /* Change flex direction to column */
+    margin: 0;
+  }
+
+  .poster-event2 {
+    max-width: 100%;
+    width: 100%;
+    padding-bottom: 0;
+    align-self: flex-start;
+  }
+
+  .isi4 h3 {
+    font-size: 2.4rem;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .isi4 h1 {
+    font-size: 2.4rem;
+    line-height: 1.3;
+  }
+
+  .isi4 {
+    width: 100%; /* Set text width to 90% */
+    max-width: 100%; /* Full width for text */
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .isi4 h4 {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+
+  .features {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+
+
+  

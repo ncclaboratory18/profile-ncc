@@ -2,26 +2,44 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { List, X } from "@phosphor-icons/react/dist/ssr";
+import { NccMark } from "@/components/brand/NccMark";
 import { NAV_LINKS } from "@/lib/nav";
 import { isNavActive } from "@/lib/isNavActive";
 
 export function SiteNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Over the home page's full-bleed hero the nav is transparent until you scroll.
+  const overHero = pathname === "/" && !scrolled && !open;
+
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 24);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-hairline bg-bg-surface/85 backdrop-blur-md">
+    <header
+      className={`sticky top-0 z-50 transition-colors duration-300 ${
+        overHero
+          ? "border-b border-transparent bg-transparent"
+          : "border-b border-hairline bg-bg-surface/85 backdrop-blur-md"
+      }`}
+    >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
           className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight text-text-primary"
           onClick={() => setOpen(false)}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] bg-accent-blue text-sm font-bold text-white">
-            NC
-          </span>
+          <NccMark height={28} priority />
           <span className="hidden sm:inline">NCC Lab</span>
         </Link>
 

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Legacy LIPIST site kept as content/IA reference only — not shipped code.
+    "reference/**",
   ]),
 ]);
 

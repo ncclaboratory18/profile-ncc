@@ -85,3 +85,20 @@ button:focus-visible,
     scroll-behavior: auto !important;
   }
 }
+
+/* Logo marquee — one full copy of the duplicated track. */
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+.marquee-track {
+  animation: marquee 45s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
+    transform: none !important;
+  }
+}

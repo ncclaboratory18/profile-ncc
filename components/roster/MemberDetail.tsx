@@ -26,22 +26,26 @@ export function MemberDetail({ member }: { member: TeamMember }) {
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,380px)_1fr]">
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface">
           <Image
-            src={member.photo}
+            src={member.card ?? member.photo}
             alt={member.name}
             fill
             sizes="(min-width: 1024px) 380px, 100vw"
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#05070a] via-transparent to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-5">
-            <p className="font-display text-3xl font-semibold text-white">
-              {member.nickname ?? member.name}
-            </p>
-            <p className="mt-1 font-sans text-sm font-medium text-text-secondary">
-              {member.role}
-            </p>
-          </div>
+          {!member.card && (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#05070a] via-transparent to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-5">
+                <p className="font-display text-3xl font-semibold text-white">
+                  {member.nickname ?? member.name}
+                </p>
+                <p className="mt-1 font-sans text-sm font-medium text-text-secondary">
+                  {member.role}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         <div>

@@ -8,6 +8,8 @@ export interface TeamMember {
   major: string;
   nrp?: string;
   photo: string;
+  /** Full card-template artwork, when the design team has produced one. */
+  card?: string;
   email?: string;
   instagram?: string;
   bio?: string;

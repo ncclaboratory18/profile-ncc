@@ -1,0 +1,973 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "poppins", "sans-serif";
+}
+
+body {
+  min-height: 100vh;
+  background: rgb(0, 0, 0);
+}
+
+/*=============== HEADER ===============*/
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px 100px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  z-index: 100;
+}
+.header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transition: 0.5s;
+}
+.header:hover::before {
+  left: 100%;
+}
+.logo {
+  color: #fff;
+  font-size: 25px;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: default;
+}
+.navbar a {
+  color: #fff;
+  font-size: 18px;
+  text-decoration: none;
+  margin-left: 35px;
+  transition: 0.3s;
+}
+.navbar a:hover {
+  color: rgb(0, 204, 255);
+}
+#menu-icon {
+  font-size: 36px;
+  color: #fff;
+  display: none;
+}
+
+/*=============== Page 1 ===============*/
+
+.index_bkg {
+  max-width: 100%;
+  min-height: 100vh;
+  position: absolute; /* Change position to fixed */
+  top: 0; /* Ensure it covers the entire viewport */
+  left: 0;
+  padding-bottom: 30vh;
+  z-index: -1; /* Set z-index to be behind all content */
+}
+
+.awal {
+  display: flex;
+  justify-content: center;
+  position: relative; /* Added position relative */
+}
+
+.page1 {
+  top: 10vh;
+  display: flex;
+  align-items: center;
+  max-width: 80%;
+  gap: 50px;
+  color: #fff;
+  margin: 0 auto;
+  position: relative; /* Added position relative */
+  z-index: 2;
+}
+
+.poster-event {
+  max-width: 35%;
+  position: relative; /* Added position relative */
+  opacity: 100;
+  z-index: 3; /* Set z-index to be in front of content */
+}
+
+.isi {
+  width: 60%;
+  position: relative; /* Added position relative */
+  z-index: 3; /* Set z-index to be in front of content */
+}
+
+.isi p2 {
+  color: gray;
+}
+
+.isi h1 {
+  font-size: 3rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.isi h3 {
+  font-size: 4rem;
+  font-weight: 500;
+  color: rgb(0, 183, 255);
+  line-height: 1;
+}
+
+.isi p {
+  color: white;
+  font-size: 1em;
+}
+
+/*=============== Page 2 ===============*/
+
+.highlight {
+  max-width: 80%;
+  margin: 0 auto;
+  text-align: center; /* Center-align text within the .highlight section */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 30vh;
+  margin-bottom: 5vh;
+}
+
+.isi2 h1 {
+  font-size: 3rem;
+  font-weight: 520;
+  line-height: 2.3;
+}
+
+.isi2 p {
+  color: white;
+  font-size: 1.5rem;
+}
+
+.hover-button {
+  background-color: transparent;
+  border: 2px solid #ffffff; /* Green */
+  color: #ffffff; /* Green */
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 30px;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: border-color 0.3s, color 0.3s;
+}
+
+.hover-button:hover {
+  border-color: rgb(0, 174, 255); /* White */
+}
+/*=============== Page 3 ===============*/
+
+.ketua {
+  display: flex;
+  justify-content: center;
+  padding-top: 100px;
+  padding-bottom: 10vh;
+}
+
+.page4 {
+  display: flex;
+  align-items: center; /* Add this line */
+  max-width: 80%;
+  gap: 50px;
+  color: #fff;
+  margin: 0 auto;
+  flex-direction: row-reverse;
+}
+
+.poster-event2 {
+  max-width: 40%;
+  /* Adjust as needed */
+}
+
+.isi4 {
+  width: 60%; /* Adjust as needed */
+}
+
+.isi4 p2 {
+  color: gray;
+}
+
+.isi4 h1 {
+  font-size: 4rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.isi4 h4 {
+  font-size: 2.5rem;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.isi4 h3 {
+  font-size: 4rem;
+  font-weight: 500;
+  color: rgb(0, 183, 255);
+  line-height: 1.5;
+}
+
+.isi4 p {
+  color: white;
+  font-size: 1em;
+}
+
+/*=============== Page 4 ===============*/
+
+.more-event h1 {
+  color: #ffffff; /* Green */
+  text-align: center;
+  padding-bottom: 5vh;
+  font-weight: 500;
+}
+
+.anggota {
+  padding-top: 20vh;
+  padding-bottom: 50vh;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh; /* Set the height to 100% of the viewport height */
+  max-width: 80%;
+}
+.wrapper {
+  max-width: 1100px;
+  width: 100%;
+  position: relative;
+}
+.wrapper i {
+  top: 50%;
+  height: 50px;
+  width: 50px;
+  cursor: pointer;
+  font-size: 1.25rem;
+  position: absolute;
+  text-align: center;
+  line-height: 50px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.23);
+  transform: translateY(-50%);
+  transition: transform 0.1s linear;
+}
+.wrapper i:active {
+  transform: translateY(-50%) scale(0.85);
+}
+.wrapper i:first-child {
+  left: -22px;
+}
+.wrapper i:last-child {
+  right: -22px;
+}
+.wrapper .carousel {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% / 3) - 12px);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 16px;
+  border-radius: 8px;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+.carousel.no-transition {
+  scroll-behavior: auto;
+}
+.carousel.dragging {
+  scroll-snap-type: none;
+  scroll-behavior: auto;
+}
+.carousel.dragging .cards {
+  cursor: grab;
+  user-select: none;
+}
+.carousel :where(.cards, .img) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.carousel .cards {
+  scroll-snap-align: start;
+  height: 400px;
+  list-style: none;
+  background: #0e0e0e;
+  cursor: pointer;
+  padding-bottom: 10px;
+  flex-direction: column;
+  border-radius: 8px;
+}
+/*.carousel .cards .img {
+  background: #8b53ff;
+  height: 148px;
+  width: 148px;
+  border-radius: 50%;
+}*/
+.cards .img img {
+  width: 140px; /* Adjust the width to match the desired size */
+  height: 140px; /* Adjust the height to match the desired size */
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.carousel .cards h2 {
+  font-weight: 500;
+  font-size: 1.56rem;
+  margin: 30px 0 5px;
+  color: #00c3ff;
+}
+.carousel .cards span {
+  color: #ececec;
+  font-size: 1.31rem;
+}
+
+.events {
+  background-color: transparent;
+  border: 2px solid #ffffff; /* Green */
+  color: #ffffff; /* Green */
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin-top: 20px;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: border-color 0.3s, color 0.3s;
+}
+
+.events:hover {
+  border-color: rgb(0, 174, 255); /* White */
+}
+
+/*=============== Page 5 ===============*/
+
+.aktivitas {
+  padding-bottom: 20vh;
+  overflow: hidden;
+}
+
+.slider {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  user-select: none;
+  padding: 0 5vw;
+  width: fit-content;
+}
+
+.slide {
+  width: 50vw;
+  height: 500px;
+  margin: 0 5vw;
+  position: relative;
+  transition: all 0.7s ease;
+}
+.slide > .photo {
+  width: inherit;
+  height: inherit;
+  transition: all 1s ease;
+}
+.slide > .photo > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(60%);
+  border-radius: 10px;
+}
+.slide > .text {
+  position: absolute;
+  bottom: 20%;
+  right: -50px;
+  color: white;
+  transition: all 0.4s ease;
+}
+.slide > .text h2 {
+  font-size: 4rem;
+  margin-bottom: 0;
+}
+.slide > .text p {
+  font-size: 1.3rem;
+  margin-top: 0.5rem;
+}
+
+/* slide numbers */
+.slide .photo::before {
+  content: "";
+  position: absolute;
+  color: #fff;
+  transform: rotate(-90deg);
+  top: 40px;
+  left: -60px;
+}
+
+.more-aktivitas h1 {
+  color: #ffffff; /* Green */
+  text-align: center;
+  padding-bottom: 8vh;
+  font-weight: 500;
+  font-size: 2.7rem;
+}
+
+/* Press animation */
+.slider:active {
+  cursor: grabbing;
+}
+.slider:active .slide {
+  transform: scale(0.9);
+  margin: 0 0;
+}
+.slider:active .slide .text {
+  transform: translateX(-40%);
+}
+
+/*======= NEW ACTIVITY SLIDER ===========================*/
+.new-slider{
+  width: 100%;
+  /* border: 1px solid #ffffff; */
+  margin: 0 60px;
+  height: var(--height);
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 10% 90%,
+    transparent
+  );
+}
+
+/* 2. Pengaturan untuk Smartphone (Layar di bawah 768px) */
+@media (max-width: 768px) {
+  .new-slider {
+    /* Menyesuaikan masking agar seimbang di layar kecil */
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 20%,      /* Mulai terlihat jelas di 20% */
+      #000 80%,      /* Mulai memudar di 80% */
+      transparent
+    );
+    
+    /* Memastikan slider tetap berada di tengah layar */
+    margin: 0 auto;
+    width: 95%; /* Memberi sedikit ruang di pinggir layar */
+  }
+  
+  /* Mengecilkan container teks agar tidak meluber keluar gambar */
+  .new-slider .new-item .text {
+    bottom: 15%;      /* Naikkan sedikit posisinya */
+    right: 10%;       /* Beri jarak dari pinggir kanan */
+    transform: none;  /* Reset transform agar lebih stabil di HP */
+    width: 80%;       /* Batasi lebar teks agar rapi */
+  }
+
+  /* Mengecilkan ukuran Judul (h2) */
+  .new-slider .new-item .text h2 {
+    font-size: 1.2rem !important; /* Ukuran jauh lebih kecil untuk HP */
+    line-height: 1.1;
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.7);
+  }
+
+  /* Mengecilkan ukuran Deskripsi (p) */
+  .new-slider .new-item .text p {
+    font-size: 0.75rem !important; /* Ukuran teks kecil agar tidak penuh */
+    margin-top: 0.3rem;
+    opacity: 1; /* Pastikan teks terbaca jelas */
+  }
+}
+
+.new-slider .new-list{
+  display: flex;
+  width: 100%;
+  min-width: calc(var(--width) * var(--quantity));
+  position: relative;
+}
+
+.new-slider .new-list .new-item {
+    width: var(--width);
+    height: var(--height);
+    position: absolute;
+    left: 100%;
+    animation: autoRun 35s linear infinite;
+    animation-delay: calc((35s / var(--quantity)) * (var(--position) - 1) - 35s);
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.new-slider .new-item .photo {
+    width: 100%;
+    height: 100%;
+}
+
+.new-slider .new-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(60%);
+    border-radius: 10px;
+}
+
+.new-slider .new-item .text {
+    position: absolute;
+    bottom: 20%;
+    right: 5%; 
+    transform: translateX(-10%); 
+    color: white;
+    text-align: right;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.new-slider .new-item .text h2 {
+    font-size: 3rem;
+    margin-bottom: 0;
+    line-height: 1.2;
+    font-weight: 700;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+}
+
+.new-slider .new-item .text p {
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+    opacity: 0.9;
+}
+
+@keyframes autoRun{
+  from{
+    left: 100%;
+  }
+  to{
+    left: calc(var(--width) * -1);
+  }
+}
+
+/* Untuk device yang mendukung hover (desktop) */
+@media (hover: hover) {
+  .new-slider:hover .new-item {
+    animation-play-state: paused !important;
+  }
+}
+
+/* Untuk device touchscreen */
+@media (hover: none) {
+  .new-slider:active .new-item {
+    animation-play-state: paused !important;
+  }
+}
+
+/*KALAU MAU DI HOVER BERUBAH WARNA
+.new-slider:hover .new-item{
+  animation-play-state: paused!important;
+  filter: grayscale(1);
+}
+
+.new-slider .new-item:hover{
+  filter: grayscale(0);
+}
+*/
+/*======= END NEW ACTIVITY SLIDER =========================== */
+
+/*======= FOOTER ===========================*/
+footer {
+  bottom: 100px;
+  z-index: 999;
+}
+
+@media (max-height: 800px) {
+  footer {
+    position: static;
+  }
+
+  header {
+    padding-top: 40px;
+  }
+}
+
+.footer-distributed {
+  background-color: #08080870;
+  box-sizing: border-box;
+  width: 100%;
+  text-align: left;
+  font: bold 16px sans-serif;
+  padding: 50px 50px 60px 50px;
+  margin-top: 80px;
+}
+
+.footer-distributed .footer-left,
+.footer-distributed .footer-center,
+.footer-distributed .footer-right {
+  display: inline-block;
+  vertical-align: top;
+}
+
+/* Footer left */
+
+.footer-distributed .footer-left {
+  width: 30%;
+}
+
+.footer-distributed h3 {
+  color: #ffffff;
+  font: normal 36px "Cookie", cursive;
+  margin: 0;
+}
+
+.footer-distributed h3 span {
+  color: #e0ac1c;
+}
+
+/* Footer links */
+
+.footer-distributed .footer-links {
+  color: #ffffff;
+  margin: 20px 0 12px;
+}
+
+.footer-distributed .footer-links a {
+  display: inline-block;
+  line-height: 1.8;
+  text-decoration: none;
+  color: inherit;
+}
+
+.footer-distributed .footer-company-name {
+  color: #8f9296;
+  font-size: 14px;
+  font-weight: normal;
+  margin: 0;
+}
+
+/* Footer Center */
+
+.footer-distributed .footer-center {
+  width: 35%;
+}
+
+.footer-distributed .footer-center i {
+  background-color: #33383b;
+  color: #ffffff;
+  font-size: 25px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 42px;
+  margin: 10px 15px;
+  vertical-align: middle;
+}
+
+.footer-distributed .footer-center i.fa-envelope {
+  font-size: 17px;
+  line-height: 38px;
+}
+
+.footer-distributed .footer-center p {
+  display: inline-block;
+  color: #ffffff;
+  vertical-align: middle;
+  margin: 0;
+}
+
+.footer-distributed .footer-center p span {
+  display: block;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 2;
+}
+
+.footer-distributed .footer-center p a {
+  color: #00b7ff;
+  text-decoration: none;
+}
+
+/* Footer Right */
+
+.footer-distributed .footer-right {
+  width: 30%;
+}
+
+.footer-distributed .footer-company-about {
+  line-height: 20px;
+  color: #92999f;
+  font-size: 13px;
+  font-weight: normal;
+  margin: 0;
+}
+
+.footer-distributed .footer-company-about span {
+  display: block;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.footer-distributed .footer-icons {
+  margin-top: 25px;
+}
+
+.footer-distributed .footer-icons a {
+  display: inline-block;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  background-color: #33383b;
+  border-radius: 2px;
+  font-size: 20px;
+  color: #ffffff;
+  text-align: center;
+  line-height: 35px;
+  margin-right: 3px;
+  margin-bottom: 5px;
+}
+
+.footer-distributed .footer-icons a:hover {
+  background-color: #00bfff;
+}
+
+.footer-links a:hover {
+  color: #00bbff;
+}
+
+/*======= BREAK POINT ===========================*/
+
+@media (width<1025px) {
+  /* NAV */
+  .header {
+    padding: 1.25rem 4%;
+  }
+  /* PAGE 1 */
+  .page1 {
+    flex-direction: column-reverse; /* Change flex direction to column */
+  }
+
+  .poster-event {
+    max-width: 60%; /* Adjust width of the image */
+    margin-bottom: 0; /* Remove bottom margin */
+    align-self: flex-start; /* Align the image to the top of its container */
+  }
+
+  .isi {
+    width: 100%; /* Full width for text */
+    /*margin: 0 auto 30px; /* Set margin for bottom only */
+  }
+  /* page 4 */
+  .anggota {
+    padding-bottom: 30vh;
+  }
+
+  .more-event h1 {
+    padding-bottom: 5vh;
+  }
+
+  .wrapper .carousel {
+    grid-auto-columns: calc((100% / 2) - 9px);
+  }
+
+  /* page 5 */
+  .aktivitas {
+    padding-top: 0vh;
+  }
+
+  .slide {
+    width: 80vw;
+    height: 400px;
+  }
+  .slide > .text h2 {
+    font-size: 2.2rem;
+  }
+  .slide > .text p {
+    font-size: 1.2rem;
+  }
+
+  /* FOOTER */
+  .footer-distributed .footer-left,
+  .footer-distributed .footer-center,
+  .footer-distributed .footer-right {
+    display: block;
+    width: 100%;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+
+  .footer-distributed .footer-center i {
+    margin-left: 0;
+  }
+}
+
+/*======= BREAK POINT ===========================*/
+@media (width<768px) {
+  #menu-icon {
+    display: block;
+    cursor: pointer;
+  }
+  .navbar {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    padding: 0.5rem 4%;
+    display: none;
+  }
+  .navbar.active {
+    display: block;
+  }
+  .navbar a {
+    display: block;
+    margin: 1.5rem 0;
+  }
+  .nav-bg {
+    position: fixed;
+    top: 79px;
+    left: 0;
+    width: 100%;
+    height: 295px;
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    z-index: 99;
+    display: none;
+  }
+  .nav-bg.active {
+    display: block;
+  }
+  /* Page 1 */
+  .page1 {
+    flex-direction: column-reverse;
+    width: 90%; /* Change flex direction to column */
+    margin: 0;
+  }
+
+  .poster-event {
+    width: 50%; /* Adjust width of the image */
+    margin-bottom: 0; /* Remove bottom margin */
+    align-self: flex-start; /* Align the image to the top of its container */
+  }
+
+  .isi h3 {
+    font-size: 2.4rem;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .isi h1 {
+    font-size: 2.4rem;
+    line-height: 1;
+  }
+
+  .isi {
+    width: 100%; /* Set text width to 90% */
+    max-width: 100%; /* Full width for text */
+    margin: 0;
+    font-size: 0.7rem;
+  }
+  /* Page 2 */
+  .isi2 h1 {
+    font-size: 2.4rem;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+
+  .isi2 P {
+    font-size: 1.5rem;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  /* Page 3 */
+  .page4 {
+    flex-direction: column-reverse;
+    width: 100%; /* Change flex direction to column */
+    margin: 0;
+  }
+
+  .poster-event2 {
+    max-width: 100%;
+    width: 100%;
+    padding-bottom: 0;
+    align-self: flex-start;
+  }
+
+  .isi4 h3 {
+    font-size: 2.4rem;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .isi4 h1 {
+    font-size: 2.4rem;
+    line-height: 1.3;
+  }
+
+  .isi4 {
+    width: 100%; /* Set text width to 90% */
+    max-width: 100%; /* Full width for text */
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .isi4 h4 {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  /* page 4 */
+  .anggota {
+    padding-bottom: 40vh;
+  }
+  .wrapper .carousel {
+    grid-auto-columns: calc((100% / 1) - 9px);
+  }
+
+  /* page 5 */
+  .more-aktivitas{
+      margin-bottom: 5vh;
+  }
+  
+  .slide {
+    width: 80vw;
+    height: 400px;
+  }
+  .slide > .text h2 {
+    font-size: 1.5rem;
+  }
+  .slide > .text p {
+    font-size: 0.9rem;
+  }
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+section, main, .container, .wrapper, .content {
+  position: relative !important;
+  height: auto !important;
+  min-height: auto !important;
+  overflow: visible !important;
+}

@@ -1,0 +1,2 @@
+AddType application/javascript .js
+AddCharset UTF-8 .js

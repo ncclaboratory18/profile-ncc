@@ -5,13 +5,14 @@
     "nickname": "Danish",
     "team": "admin",
     "role": "Lab Coordinator",
-    "generation": "2023",
+    "generation": "2024",
     "major": "Informatics",
-    "nrp": "5025221045",
+    "nrp": "5025241036",
     "photo": "https://picsum.photos/seed/ncc-danish/600/750",
-    "email": "danish.abqori@student.its.ac.id",
-    "instagram": "@danishabqr",
-    "bio": "Danish coordinates day-to-day lab operations and leads the onboarding track for incoming generations. Focused on distributed systems tooling and internal infrastructure."
+    "email": "ncclaboratory18@gmail.com",
+    "instagram": "@ncclab_its",
+    "bio": "Danish coordinates day-to-day lab operations and leads the onboarding track for incoming generations. Focused on distributed systems tooling and internal infrastructure.",
+    "card": "/members/2024/danish-abqori-card.jpg"
   },
   {
     "id": "kayla-simatupang",

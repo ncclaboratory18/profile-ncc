@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { MapPin } from "@phosphor-icons/react/dist/ssr";
+import { MapPin, EnvelopeSimple, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
+import { NccMark } from "@/components/brand/NccMark";
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL, LAB_EMAIL } from "@/lib/gallery";
 import { NAV_LINKS } from "@/lib/nav";
 
 export function Footer() {
@@ -9,9 +11,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-2 font-display text-lg font-semibold text-text-primary">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] bg-accent-blue text-sm font-bold text-white">
-                NC
-              </span>
+              <NccMark height={30} />
               NCC Lab
             </div>
             <p className="mt-3 max-w-[38ch] font-sans text-sm leading-relaxed text-text-secondary">
@@ -47,8 +47,25 @@ export function Footer() {
                 <MapPin size={16} className="shrink-0 text-accent-blue" />
                 Department of Informatics Engineering, ITS, Surabaya
               </li>
-              <li className="text-text-tertiary">
-                Email / Instagram — pending
+              <li>
+                <a
+                  href={`mailto:${LAB_EMAIL}`}
+                  className="flex items-center gap-2 transition-colors hover:text-accent-blue-text"
+                >
+                  <EnvelopeSimple size={16} className="shrink-0 text-accent-blue" />
+                  {LAB_EMAIL}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 transition-colors hover:text-accent-blue-text"
+                >
+                  <InstagramLogo size={16} className="shrink-0 text-accent-blue" />
+                  {INSTAGRAM_HANDLE}
+                </a>
               </li>
             </ul>
           </div>
