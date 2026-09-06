@@ -1,6 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/lib/reduced-motion";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 

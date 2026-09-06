@@ -77,13 +77,51 @@ button:focus-visible,
   border-radius: var(--radius-control);
 }
 
+/* OS-level Reduce Motion — skipped when the visitor has explicitly opted
+   back into motion via the footer toggle (`data-motion="allow"`). Without
+   that escape hatch, anyone running Reduce Motion system-wide gets every
+   animation on the site stripped with no way to restore it. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  :root:not([data-motion="allow"]) *,
+  :root:not([data-motion="allow"]) *::before,
+  :root:not([data-motion="allow"]) *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Explicitly reduced via the footer toggle, whatever the OS reports. */
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* --- Web Interface Guidelines pass --- */
+
+/* Headings shouldn't leave a single orphaned word on the last line; body copy
+   gets the lighter `pretty` treatment. */
+h1, h2, h3, h4 {
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+
+/* Sticky nav is 64px — anchor targets need to clear it. */
+:target {
+  scroll-margin-top: 6rem;
+}
+
+/* Kill the 300ms tap delay and the default blue flash on touch. */
+a, button, [role="button"], summary, label {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Logo marquee — one full copy of the duplicated track. */
@@ -97,8 +135,244 @@ button:focus-visible,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track {
+  :root:not([data-motion="allow"]) .marquee-track {
     animation: none !important;
     transform: none !important;
+  }
+}
+:root[data-motion="reduce"] .marquee-track {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* v4 glow system — one accent color (--accent-blue) carries every glow. */
+
+/* Generation carousel (Swiper effect-coverflow) — restyle the library's
+   default chevron buttons into the site's hairline-circle language rather
+   than hand-building custom nav elements the installed Swiper React version
+   has no supported hook for. */
+.generation-carousel {
+  --swiper-navigation-size: 18px;
+  --swiper-navigation-color: var(--text-secondary);
+}
+.generation-carousel .swiper-button-prev,
+.generation-carousel .swiper-button-next {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline-strong);
+  background: var(--bg-surface);
+  transition: color 0.2s, border-color 0.2s;
+}
+.generation-carousel .swiper-button-prev:hover,
+.generation-carousel .swiper-button-next:hover {
+  color: var(--accent-blue-text);
+  border-color: var(--accent-blue-border-hover);
+}
+
+/* Cursor-following spotlight, tracked via --spot-x/--spot-y set from JS. */
+.card-spotlight {
+  background: radial-gradient(
+    220px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(14, 116, 188, 0.16),
+    transparent 70%
+  );
+}
+
+/* Persistent pulse reserved for the two "distinguished" cards (Prof. Tohari, koor lab). */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px var(--accent-blue-border-hover), 0 0 24px 2px rgba(14, 116, 188, 0.25); }
+  50%      { box-shadow: 0 0 0 1px var(--accent-blue-border-hover), 0 0 40px 6px rgba(14, 116, 188, 0.45); }
+}
+.glow-pulse {
+  animation: glow-pulse 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="allow"]) .glow-pulse {
+    animation: none !important;
+  }
+}
+:root[data-motion="reduce"] .glow-pulse {
+  animation: none !important;
+}
+
+/* ── Glitch text (v5) ────────────────────────────────────────────────────
+   Per-character flicker: characters snap between dim and lit at irregular
+   intervals, then settle solid — a signal booting up rather than a colour
+   fringe. `steps(1, end)` is what makes it read as flicker instead of a
+   fade; a smooth interpolation would just look like a pulse.
+
+   Used as a triggered moment only — the hero once on load, spotlight names
+   and role tags on hover — never as a resting loop on text people read. */
+.glitch {
+  display: inline-block;
+}
+
+.glitch-char {
+  display: inline-block;
+  white-space: pre;
+  animation-duration: var(--flicker-duration, 900ms);
+  animation-delay: var(--flicker-delay, 0ms);
+  animation-timing-function: steps(1, end);
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+@keyframes char-flicker {
+  0%   { opacity: 0.12; }
+  9%   { opacity: 1; }
+  17%  { opacity: 0.22; }
+  26%  { opacity: 1; }
+  38%  { opacity: 0.35; }
+  47%  { opacity: 1; }
+  61%  { opacity: 0.18; }
+  70%  { opacity: 1; }
+  82%  { opacity: 0.45; }
+  100% { opacity: 1; }
+}
+
+/* Fires once, shortly after load. The short lead-in also lets React hydrate
+   and stamp `data-motion` before the animation starts, so an explicit
+   opt-in isn't briefly overridden by the OS media query. */
+.glitch--once .glitch-char {
+  animation-name: char-flicker;
+}
+
+/* Hover/focus — on the element itself or on an ancestor marked
+   `.glitch-trigger`, which is how a card lights up its own role tag. */
+.glitch--hover:hover .glitch-char,
+.glitch--hover:focus-visible .glitch-char,
+.glitch-trigger:hover .glitch--hover .glitch-char,
+.glitch-trigger:focus-visible .glitch--hover .glitch-char {
+  animation-name: char-flicker;
+}
+
+/* Decoration only — the characters are the real text, so dropping the
+   animation loses nothing. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="allow"]) .glitch-char {
+    animation-name: none !important;
+    opacity: 1 !important;
+  }
+}
+:root[data-motion="reduce"] .glitch-char {
+  animation-name: none !important;
+  opacity: 1 !important;
+}
+
+
+
+/* ── Meet the Lab spotlight (v5) ─────────────────────────────────────────
+   Rows rest dimmed and desaturated; hovering or focusing one brings it to
+   full colour while its siblings recede further, so attention funnels to the
+   active row instead of merely favouring it.
+
+   Both behaviours are gated behind `@media (hover: hover)`. On touch there is
+   no hover gesture to reveal a dimmed row, so rows simply render at full
+   brightness — the fallback the direction doc calls for explicitly. */
+.spotlight-row {
+  transition:
+    opacity 400ms var(--ease-premium),
+    filter 400ms var(--ease-premium),
+    transform 400ms var(--ease-premium);
+}
+
+.spotlight-row .spotlight-photo {
+  transition:
+    filter 400ms var(--ease-premium),
+    transform 400ms var(--ease-premium);
+}
+
+@media (hover: hover) {
+  .spotlight-row {
+    opacity: 0.55;
+  }
+
+  .spotlight-row .spotlight-photo {
+    filter: grayscale(0.85) brightness(0.6);
+  }
+
+  .spotlight-row:hover,
+  .spotlight-row:focus-within {
+    opacity: 1;
+  }
+
+  .spotlight-row:hover .spotlight-photo,
+  .spotlight-row:focus-within .spotlight-photo {
+    filter: grayscale(0) brightness(1);
+    transform: scale(1.03);
+  }
+
+  /* Siblings actively recede while one row is active. */
+  .spotlight-list:has(.spotlight-row:hover) .spotlight-row:not(:hover),
+  .spotlight-list:has(.spotlight-row:focus-within) .spotlight-row:not(:focus-within) {
+    opacity: 0.25;
+  }
+
+  /* The accent underline under the active row's name. */
+  .spotlight-row .spotlight-underline {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 400ms var(--ease-premium);
+  }
+
+  .spotlight-row:hover .spotlight-underline,
+  .spotlight-row:focus-within .spotlight-underline {
+    transform: scaleX(1);
+  }
+}
+
+/* ── Lecturer zigzag rows (v5 follow-up) ─────────────────────────────────
+   Each lecturer sits as one unit — photo beside text — pinned left, then
+   right, alternating down the page. Hovering one brings its photo to full
+   colour and lifts the surface; siblings recede.
+
+   Unlike the Home spotlight, the *text* here never drops below full
+   readability: these are full bios, and dimming body copy far enough to read
+   as "inactive" would push it under contrast. Only the photo, surface, and
+   accent line carry the state change. */
+.lecturer-row {
+  transition:
+    background-color 400ms var(--ease-premium),
+    border-color 400ms var(--ease-premium),
+    opacity 400ms var(--ease-premium);
+}
+
+.lecturer-row .lecturer-photo {
+  transition:
+    filter 500ms var(--ease-premium),
+    transform 500ms var(--ease-premium);
+}
+
+.lecturer-row .lecturer-underline {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 450ms var(--ease-premium);
+}
+
+@media (hover: hover) {
+  .lecturer-row .lecturer-photo {
+    filter: grayscale(0.7) brightness(0.72);
+  }
+
+  .lecturer-row:hover {
+    background-color: color-mix(in srgb, var(--bg-surface) 55%, transparent);
+    border-color: var(--accent-blue-border-hover);
+  }
+
+  .lecturer-row:hover .lecturer-photo {
+    filter: grayscale(0) brightness(1);
+    transform: scale(1.04);
+  }
+
+  .lecturer-row:hover .lecturer-underline {
+    transform: scaleX(1);
+  }
+
+  /* Siblings recede while one row is active — photo only, so every bio stays
+     legible no matter which row is hovered. */
+  .lecturer-list:has(.lecturer-row:hover) .lecturer-row:not(:hover) {
+    opacity: 0.72;
   }
 }

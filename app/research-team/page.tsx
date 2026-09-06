@@ -1,19 +1,22 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { ShieldCheck } from "@phosphor-icons/react/dist/ssr";
-import { RESEARCH_MARK } from "@/lib/gallery";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { RosterView } from "@/components/roster/RosterView";
-import { researchTeam } from "@/lib/data";
+import { LecturerCard } from "@/components/lecturers/LecturerCard";
+import { MemberCard } from "@/components/roster/MemberCard";
+import { RevealGroup, RevealItem } from "@/components/motion/Reveal";
+import { researchTeam, lecturers } from "@/lib/data";
+import { RESEARCH_MARK } from "@/lib/gallery";
 
 export const metadata: Metadata = {
   title: "Research Team — NCC Lab",
 };
 
 export default function ResearchTeamPage() {
+  const head = lecturers.find((l) => l.id === "tohari-ahmad") ?? lecturers[0];
+
   return (
-    <div className="pb-20">
+    <div className="pb-24">
       <PageHeader
         title="Research Team"
         description="Active research tracks under the NCC Lab, organized by generation."
@@ -31,10 +34,27 @@ export default function ResearchTeamPage() {
           Under NCC Lab
         </span>
       </div>
-      <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
-        <Suspense fallback={null}>
-          <RosterView members={researchTeam} />
-        </Suspense>
+
+      {head && (
+        <div className="mx-auto mt-10 flex max-w-7xl justify-center px-4 sm:px-6 lg:px-8">
+          <LecturerCard lecturer={head} variant="lead" />
+        </div>
+      )}
+
+      <div className="mx-auto max-w-7xl px-4 pt-14 sm:px-6 lg:px-8">
+        {researchTeam.length === 0 ? (
+          <p className="text-center font-sans text-sm text-text-tertiary">
+            No research team members recorded yet.
+          </p>
+        ) : (
+          <RevealGroup className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+            {researchTeam.map((member) => (
+              <RevealItem key={member.id}>
+                <MemberCard member={member} variant="grid" />
+              </RevealItem>
+            ))}
+          </RevealGroup>
+        )}
       </div>
     </div>
   );

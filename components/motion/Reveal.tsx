@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { motion, type Variants } from "motion/react";
+import { useReducedMotion } from "@/lib/reduced-motion";
 import type { ReactNode } from "react";
 
 const EASE_PREMIUM = [0.16, 1, 0.3, 1] as const;
@@ -42,21 +43,28 @@ export function Reveal({
   );
 }
 
-const container: Variants = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: 0.07 },
-  },
-};
-
-/** Wraps a list/grid so its direct motion children fade up in a stagger. */
+/**
+ * Wraps a list/grid so its direct motion children fade up in a stagger.
+ * `delay` offsets the whole group — e.g. a second row that should visibly
+ * follow a first one rather than entering at the same instant.
+ */
 export function RevealGroup({
   children,
   className,
+  delay = 0,
 }: {
   children: ReactNode;
   className?: string;
+  delay?: number;
 }) {
+  const reduce = useReducedMotion();
+  const container: Variants = {
+    hidden: {},
+    show: {
+      transition: { staggerChildren: 0.07, delayChildren: reduce ? 0 : delay },
+    },
+  };
+
   return (
     <motion.div
       className={className}

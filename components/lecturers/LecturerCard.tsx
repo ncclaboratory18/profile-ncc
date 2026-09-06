@@ -1,16 +1,40 @@
+"use client";
+
 import Image from "next/image";
+import { useSpotlight } from "@/lib/useSpotlight";
 import type { Lecturer } from "@/lib/types";
 
-export function LecturerCard({ lecturer }: { lecturer: Lecturer }) {
+export function LecturerCard({
+  lecturer,
+  variant = "default",
+}: {
+  lecturer: Lecturer;
+  /** "lead" = Prof. Tohari's larger card with a persistent glow. */
+  variant?: "default" | "lead";
+}) {
+  const { spotRef, onPointerMove } = useSpotlight<HTMLDivElement>();
+  const lead = variant === "lead";
+
   return (
-    <div className="flex flex-col items-center rounded-[var(--radius-card)] border border-hairline bg-bg-surface p-6 text-center">
-      <div className="relative h-28 w-28 overflow-hidden rounded-full border border-hairline-strong">
+    <div
+      onPointerMove={onPointerMove}
+      className={`group relative flex flex-col items-center overflow-hidden rounded-[var(--radius-card)] border bg-bg-surface text-center transition-[border-color] duration-200 ${
+        lead
+          ? "glow-pulse w-full max-w-sm border-accent-blue-border-hover p-9"
+          : "w-full max-w-xs border-hairline p-6 hover:border-accent-blue-border-hover"
+      }`}
+    >
+      <div
+        className={`relative overflow-hidden rounded-full border border-hairline-strong ${
+          lead ? "h-40 w-40" : "h-28 w-28"
+        }`}
+      >
         {lecturer.photo ? (
           <Image
             src={lecturer.photo}
             alt={lecturer.name}
             fill
-            sizes="112px"
+            sizes={lead ? "160px" : "112px"}
             className="object-cover"
           />
         ) : (
@@ -30,12 +54,20 @@ export function LecturerCard({ lecturer }: { lecturer: Lecturer }) {
         </span>
       )}
 
-      <h3 className="mt-3 font-display text-lg font-semibold text-text-primary">
+      <h3
+        className={`mt-3 font-display font-semibold text-text-primary ${lead ? "text-2xl" : "text-lg"}`}
+      >
         {lecturer.name}
       </h3>
       <p className="mt-1 font-sans text-xs leading-relaxed text-text-secondary">
         {lecturer.title}
       </p>
+
+      <div
+        ref={spotRef}
+        aria-hidden="true"
+        className="card-spotlight pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+      />
     </div>
   );
 }

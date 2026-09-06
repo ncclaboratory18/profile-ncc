@@ -1,26 +1,37 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { ShieldCheck, UsersThree } from "@phosphor-icons/react/dist/ssr";
+import { useSpotlight } from "@/lib/useSpotlight";
+import { GlitchText } from "@/components/motion/GlitchText";
 import { RESEARCH_MARK } from "@/lib/gallery";
 import type { TeamMember } from "@/lib/types";
 
 export function MemberCard({
   member,
   variant = "compact",
+  glow = false,
 }: {
   member: TeamMember;
   variant?: "compact" | "expanded" | "grid";
+  /** Persistent pulsing glow — reserved for the koor lab card. */
+  glow?: boolean;
 }) {
   const href =
     member.team === "admin" ? `/admins/${member.id}` : `/research-team/${member.id}`;
   const TeamIcon = member.team === "admin" ? UsersThree : ShieldCheck;
+  const { spotRef, onPointerMove } = useSpotlight<HTMLDivElement>();
 
   return (
     <Link
       href={href}
-      className={`group relative block shrink-0 overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface transition-[transform,border-color] duration-200 ease-[var(--ease-premium)] hover:scale-[1.02] hover:border-accent-blue-border-hover ${
+      onPointerMove={onPointerMove}
+      className={`group glitch-trigger relative block shrink-0 overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface transition-[transform,border-color] duration-200 ease-[var(--ease-premium)] hover:scale-[1.02] hover:border-accent-blue-border-hover ${
+        glow ? "glow-pulse border-accent-blue-border-hover" : ""
+      } ${
         variant === "compact"
-          ? "w-56 sm:w-64"
+          ? "w-full"
           : variant === "grid"
             ? "w-full"
             : "w-full max-w-sm"
@@ -31,7 +42,7 @@ export function MemberCard({
           src={member.card ?? member.photo}
           alt={member.name}
           fill
-          sizes="(min-width: 640px) 256px, 224px"
+          sizes="(min-width: 1024px) 420px, (min-width: 640px) 340px, 80vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
@@ -75,12 +86,18 @@ export function MemberCard({
               <p className="font-display text-xl font-semibold leading-tight text-white sm:text-2xl">
                 {member.nickname ?? member.name}
               </p>
-              <p className="mt-0.5 font-sans text-xs font-medium text-text-secondary">
-                {member.role}
+              <p className="mt-0.5 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
+                <GlitchText text={member.role} trigger="hover" />
               </p>
             </div>
           </>
         )}
+
+        <div
+          ref={spotRef}
+          aria-hidden="true"
+          className="card-spotlight pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        />
       </div>
 
       {variant === "expanded" && (

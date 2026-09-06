@@ -20,6 +20,7 @@ export interface Lecturer {
   name: string;
   title: string;
   role?: string;
+  bio?: string;
   email?: string;
   photo?: string;
   profileUrl?: string;

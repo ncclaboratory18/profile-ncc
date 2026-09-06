@@ -4,30 +4,35 @@
     "name": "Tohari Ahmad",
     "title": "Prof. Ir. Tohari Ahmad, S.Kom, MIT, Ph.D",
     "role": "Head of Laboratory",
-    "photo": "https://picsum.photos/seed/ncc-tohari/500/600"
+    "photo": "https://picsum.photos/seed/ncc-tohari/500/600",
+    "bio": "Prof. Tohari founded and leads the Net-Centric Computing Laboratory, setting its research direction across mobile computing, distributed systems, and network security. He supervises graduate research and represents the lab within the Department of Informatics Engineering."
   },
   {
     "id": "hudan-studiawan",
     "name": "Hudan Studiawan",
     "title": "Hudan Studiawan, S.Kom, M.Kom, Ph.D",
-    "photo": "https://picsum.photos/seed/ncc-hudan/500/600"
+    "photo": "https://picsum.photos/seed/ncc-hudan/500/600",
+    "bio": "Hudan's research centers on digital forensics and log analysis, and he supervises the lab's forensics-track student projects. He also teaches network security courses in the department's undergraduate program."
   },
   {
     "id": "ary-shiddiqi",
     "name": "Ary Mazharuddin Shiddiqi",
     "title": "Prof. Ary Mazharuddin Shiddiqi, S.Kom, M.Comp.Sc, Ph.D",
-    "photo": "https://picsum.photos/seed/ncc-ary/500/600"
+    "photo": "https://picsum.photos/seed/ncc-ary/500/600",
+    "bio": "Prof. Ary works on distributed systems and cloud computing, guiding several of the lab's infrastructure-focused research tracks. He has published widely on system reliability and large-scale data processing."
   },
   {
     "id": "bagus-santoso",
     "name": "Bagus Jati Santoso",
     "title": "Bagus Jati Santoso, S.Kom, M.Kom, Ph.D",
-    "photo": "https://picsum.photos/seed/ncc-bagus/500/600"
+    "photo": "https://picsum.photos/seed/ncc-bagus/500/600",
+    "bio": "Bagus focuses on multimedia networks and pervasive computing, and mentors student teams building the lab's IoT and sensor-network projects. He also coordinates several of the lab's industry collaborations."
   },
   {
     "id": "nafkhan-alzamzami",
     "name": "Moch. Nafkhan Alzamzami",
     "title": "Moch. Nafkhan Alzamzami, S.Kom, M.Kom",
-    "photo": "https://picsum.photos/seed/ncc-nafkhan/500/600"
+    "photo": "https://picsum.photos/seed/ncc-nafkhan/500/600",
+    "bio": "Nafkhan supports the lab's mobile computing research and works closely with newer student generations on their first research projects, bridging coursework and hands-on lab work."
   }
 ]

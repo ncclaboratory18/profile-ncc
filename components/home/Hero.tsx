@@ -1,50 +1,15 @@
-"use client";
-
 import Link from "next/link";
-import Image from "next/image";
-import { useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { ArrowDown } from "@phosphor-icons/react/dist/ssr";
-import { HeroParticles } from "./HeroParticles";
+import { HeroBackdrop } from "./HeroBackdrop";
 import { RevealGroup, RevealItem } from "@/components/motion/Reveal";
-import { heroPhoto } from "@/lib/gallery";
 import { NccMark } from "@/components/brand/NccMark";
+import { GlitchText } from "@/components/motion/GlitchText";
+import { heroPhoto } from "@/lib/gallery";
 
 export function Hero() {
-  const ref = useRef<HTMLElement>(null);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"],
-  });
-  // Background drifts slower than the copy — 18% offset, not a full parallax scene.
-  const photoY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
-
   return (
-    <section
-      ref={ref}
-      className="relative flex min-h-[92dvh] items-end overflow-hidden bg-bg-primary"
-    >
-      <motion.div
-        className="absolute inset-0 -bottom-[18%]"
-        style={reduce ? undefined : { y: photoY }}
-      >
-        <Image
-          src={heroPhoto.src}
-          alt={heroPhoto.alt}
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover [filter:grayscale(0.55)_brightness(0.5)]"
-        />
-      </motion.div>
-
-      {/* Atmosphere: particles sit over the photo, under the scrim. */}
-      <div className="absolute inset-0 opacity-50">
-        <HeroParticles />
-      </div>
-
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/55 to-bg-primary/25" />
+    <section className="relative flex min-h-[92dvh] items-end overflow-hidden bg-bg-primary">
+      <HeroBackdrop src={heroPhoto.src} alt={heroPhoto.alt} />
 
       <RevealGroup className="relative mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
         <RevealItem>
@@ -62,9 +27,9 @@ export function Hero() {
 
         <RevealItem>
           <h1 className="mt-6 max-w-4xl font-display text-5xl font-semibold leading-[0.98] tracking-tight text-text-primary sm:text-7xl lg:text-[5.5rem]">
-            Net-Centric
+            <GlitchText text="Net-Centric" trigger="once" as="span" />
             <br />
-            Computing Lab
+            <GlitchText text="Computing Lab" trigger="once" as="span" />
           </h1>
         </RevealItem>
 

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check": "node --experimental-strip-types scripts/check-rail-fade.mts"
+    "check": "node --experimental-strip-types scripts/check-animation-math.mts"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -15,7 +15,8 @@
     "motion": "^13.2.0",
     "next": "16.3.4",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "swiper": "^14.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

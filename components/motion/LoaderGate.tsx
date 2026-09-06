@@ -1,6 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/lib/reduced-motion";
 import { useEffect, useState } from "react";
 import { NccMark } from "@/components/brand/NccMark";
 
@@ -17,11 +18,14 @@ export function LoaderGate() {
 
   useEffect(() => {
     // First visit gets the full hold; later ones get a brief flash of the mark
-    // so the gate never blocks a repeat visitor.
-    const instant = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const hold = instant ? 0 : sessionStorage.getItem(SEEN_KEY) ? 250 : 1000;
+    // so the gate never blocks a repeat visitor. `reduce` comes from the
+    // shared hook (OS setting *or* the manual toggle), so it starts false
+    // during hydration and this re-runs if the real preference is reduced —
+    // closing the gate immediately rather than holding a motion-averse
+    // visitor behind it.
+    const hold = reduce ? 0 : sessionStorage.getItem(SEEN_KEY) ? 250 : 1000;
 
-    if (!instant) document.body.style.overflow = "hidden";
+    if (!reduce) document.body.style.overflow = "hidden";
     const timer = setTimeout(() => {
       sessionStorage.setItem(SEEN_KEY, "1");
       setOpen(false);
@@ -32,7 +36,7 @@ export function LoaderGate() {
       clearTimeout(timer);
       document.body.style.overflow = "";
     };
-  }, []);
+  }, [reduce]);
 
   return (
     <AnimatePresence>

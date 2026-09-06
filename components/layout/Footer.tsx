@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MapPin, EnvelopeSimple, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import { NccMark } from "@/components/brand/NccMark";
+import { ReduceMotionToggle } from "./ReduceMotionToggle";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL, LAB_EMAIL } from "@/lib/gallery";
 import { NAV_LINKS } from "@/lib/nav";
 
@@ -71,8 +72,11 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-hairline pt-6 font-sans text-xs text-text-tertiary">
-          © {new Date().getFullYear()} Net-Centric Computing Laboratory, ITS.
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-hairline pt-6">
+          <p className="font-sans text-xs text-text-tertiary">
+            © {new Date().getFullYear()} Net-Centric Computing Laboratory, ITS.
+          </p>
+          <ReduceMotionToggle />
         </div>
       </div>
     </footer>

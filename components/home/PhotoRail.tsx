@@ -4,11 +4,11 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   motion,
-  useReducedMotion,
   useScroll,
   useTransform,
   type MotionValue,
 } from "motion/react";
+import { useReducedMotion } from "@/lib/reduced-motion";
 import { railPhotos, type GalleryPhoto } from "@/lib/gallery";
 import { fadeRange } from "@/lib/railFade";
 import { HeroParticles } from "./HeroParticles";
@@ -56,9 +56,14 @@ export function PhotoRail() {
   );
 
   // Reduced motion (and touch users who prefer it): a plain native scroll rail.
+  //
+  // `sectionRef` stays attached in this branch too. `useScroll` above runs
+  // unconditionally, and Motion throws "Target ref is defined but not
+  // hydrated" if the ref it was handed never lands on an element — which is
+  // exactly what happens when the preference flips to reduced after mount.
   if (reduce) {
     return (
-      <section className="border-t border-hairline py-20">
+      <section ref={sectionRef} className="border-t border-hairline py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{heading}</div>
         <div className="flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-8">
           {railPhotos.map((photo) => (
