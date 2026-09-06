@@ -323,20 +323,23 @@ a, button, [role="button"], summary, label {
   }
 }
 
-/* ── Lecturer zigzag rows (v5 follow-up) ─────────────────────────────────
-   Each lecturer sits as one unit — photo beside text — pinned left, then
-   right, alternating down the page. Hovering one brings its photo to full
-   colour and lifts the surface; siblings recede.
+/* ── Lecturer zigzag rows ────────────────────────────────────────────────
+   Each lecturer is one box — photo plus copy — pinned hard to the left
+   margin, then the right, leaving the opposite side of the page empty. The
+   asymmetry is the point: a balanced two-column split still reads as a
+   centred composition even when both halves sit at the edges.
 
-   Unlike the Home spotlight, the *text* here never drops below full
-   readability: these are full bios, and dimming body copy far enough to read
-   as "inactive" would push it under contrast. Only the photo, surface, and
-   accent line carry the state change. */
-.lecturer-row {
+   Hovering a row lights the whole box, not just its copy, and brings the
+   photo back to colour. Body copy never dims below full readability here —
+   these are full bios, unlike the one-line blurbs on the Home spotlight. */
+.lecturer-row,
+.lecturer-row .lecturer-box,
+.lecturer-row .lecturer-photo-frame {
   transition:
-    background-color 400ms var(--ease-premium),
-    border-color 400ms var(--ease-premium),
-    opacity 400ms var(--ease-premium);
+    opacity 450ms var(--ease-premium),
+    background-color 450ms var(--ease-premium),
+    border-color 450ms var(--ease-premium),
+    box-shadow 450ms var(--ease-premium);
 }
 
 .lecturer-row .lecturer-photo {
@@ -351,14 +354,15 @@ a, button, [role="button"], summary, label {
   transition: transform 450ms var(--ease-premium);
 }
 
+/* Right-hand rows grow their accent line from the edge the copy is set
+   against, so it opens outward rather than back toward the page centre. */
+.lecturer-row--right .lecturer-underline {
+  transform-origin: right;
+}
+
 @media (hover: hover) {
   .lecturer-row .lecturer-photo {
-    filter: grayscale(0.7) brightness(0.72);
-  }
-
-  .lecturer-row:hover {
-    background-color: color-mix(in srgb, var(--bg-surface) 55%, transparent);
-    border-color: var(--accent-blue-border-hover);
+    filter: grayscale(0.75) brightness(0.7);
   }
 
   .lecturer-row:hover .lecturer-photo {
@@ -366,13 +370,23 @@ a, button, [role="button"], summary, label {
     transform: scale(1.04);
   }
 
+  .lecturer-row:hover .lecturer-box {
+    background-color: var(--bg-surface-raised);
+    border-color: var(--accent-blue-border-hover);
+    box-shadow: 0 0 32px -8px rgba(14, 116, 188, 0.45);
+  }
+
+  .lecturer-row:hover .lecturer-photo-frame {
+    border-color: var(--accent-blue-border-hover);
+  }
+
   .lecturer-row:hover .lecturer-underline {
     transform: scaleX(1);
   }
 
-  /* Siblings recede while one row is active — photo only, so every bio stays
-     legible no matter which row is hovered. */
+  /* Siblings recede gently while one row is active — enough to focus
+     attention, not enough to make any bio hard to read. */
   .lecturer-list:has(.lecturer-row:hover) .lecturer-row:not(:hover) {
-    opacity: 0.72;
+    opacity: 0.6;
   }
 }

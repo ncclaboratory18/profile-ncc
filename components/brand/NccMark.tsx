@@ -21,7 +21,9 @@ export function NccMark({
       height={height}
       priority={priority}
       className={className}
-      style={{ height, width: "auto" }}
+      // No inline width/height override: the props above already encode the
+      // native ratio, so pinning one dimension in CSS while the other comes
+      // from the attribute is what trips Next's aspect-ratio warning.
     />
   );
 }

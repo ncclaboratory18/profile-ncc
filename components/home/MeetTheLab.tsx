@@ -31,21 +31,21 @@ export function MeetTheLab() {
           <Reveal key={person.id}>
             <Link
               href={person.href}
-              className="spotlight-row glitch-trigger group grid grid-cols-1 items-center gap-6 sm:grid-cols-2 sm:gap-12"
+              className="spotlight-row glitch-trigger group grid grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-12"
             >
-              <div className={i % 2 === 0 ? "sm:order-1" : "sm:order-2"}>
+              <div className={i % 2 === 0 ? "lg:order-1" : "lg:order-2"}>
                 <div className="relative aspect-[5/4] w-full overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface">
                   <Image
                     src={person.photo}
                     alt={person.name}
                     fill
-                    sizes="(min-width: 640px) 45vw, 90vw"
+                    sizes="(min-width: 1024px) 45vw, 92vw"
                     className="spotlight-photo object-cover"
                   />
                 </div>
               </div>
 
-              <div className={i % 2 === 0 ? "sm:order-2" : "sm:order-1"}>
+              <div className={i % 2 === 0 ? "lg:order-2" : "lg:order-1"}>
                 <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-blue-text">
                   {person.role}
                 </p>

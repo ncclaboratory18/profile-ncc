@@ -13,11 +13,17 @@ import type { CSSProperties, ElementType } from "react";
 function flickerStyle(index: number, trigger: "hover" | "once"): CSSProperties {
   // Coprime multipliers spread neighbouring characters apart instead of
   // marching them in step.
-  const delay = (index * 53) % 260;
-  const duration = 620 + ((index * 97) % 420);
+  //
+  // `duration` sets the flicker *rate* — char-flicker has ten steps, so this
+  // is ~10 snaps per character. Cutting it is what made the effect vanish:
+  // below ~500ms the snaps blur past too fast to register. The total runtime
+  // comes down by tightening the stagger and the slow tail instead, leaving
+  // the rate where it reads.
+  const delay = (index * 53) % 120;
+  const duration = 560 + ((index * 97) % 220);
   return {
     // A short lead-in on the load animation leaves room for hydration.
-    "--flicker-delay": `${trigger === "once" ? delay + 220 : delay}ms`,
+    "--flicker-delay": `${trigger === "once" ? delay + 150 : delay}ms`,
     "--flicker-duration": `${duration}ms`,
   } as CSSProperties;
 }
