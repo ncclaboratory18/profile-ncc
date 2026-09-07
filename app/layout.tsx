@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { LoaderGate } from "@/components/motion/LoaderGate";
+import { SpaceBackground } from "@/components/motion/SpaceBackground";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -47,8 +48,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <LoaderGate />
+        <SpaceBackground />
         <SmoothScroll />
+        <LoaderGate />
         <SiteNav />
         <main id="main" className="flex-1">
           <PageTransition>{children}</PageTransition>

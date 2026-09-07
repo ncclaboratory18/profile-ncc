@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { HeroBackdrop } from "@/components/home/HeroBackdrop";
 import { GenerationCarousel } from "@/components/admins/GenerationCarousel";
+import { WorksSpotlight } from "@/components/admins/WorksSpotlight";
 import { Reveal } from "@/components/motion/Reveal";
-import { admins, generationsOf } from "@/lib/data";
+import { admins, generationsOf, projects } from "@/lib/data";
 import { heroPhoto } from "@/lib/gallery";
 
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export default function AdminsPage() {
   const generations = generationsOf(admins).slice().reverse();
 
   return (
-    <div className="pb-24">
+    <div className="pb-24 [overflow-x:clip]">
       <div className="relative overflow-hidden pb-16 pt-20">
         <HeroBackdrop src={heroPhoto.src} alt={heroPhoto.alt} />
         <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
@@ -41,6 +42,8 @@ export default function AdminsPage() {
           </section>
         ))}
       </div>
+
+      <WorksSpotlight projects={projects} />
     </div>
   );
 }

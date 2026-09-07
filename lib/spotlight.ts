@@ -19,7 +19,6 @@ const CURATED: { id: string; blurb: string }[] = [
   { id: "tohari-ahmad", blurb: "Sets the lab's research direction and supervises its graduate work." },
   { id: "danish-abqori", blurb: "Runs day-to-day lab operations and the onboarding track for new members." },
   { id: "raka-hutagalung", blurb: "Leads the security and forensics research track." },
-  { id: "rangga-wijaya", blurb: "Founded the admin team and the operating rhythm the lab still runs on." },
   { id: "salsabila-rahmadani", blurb: "Works on network anomaly detection across the campus mesh." },
 ];
 

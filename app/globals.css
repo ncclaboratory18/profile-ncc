@@ -152,22 +152,51 @@ a, button, [role="button"], summary, label {
    than hand-building custom nav elements the installed Swiper React version
    has no supported hook for. */
 .generation-carousel {
-  --swiper-navigation-size: 18px;
-  --swiper-navigation-color: var(--text-secondary);
+  --swiper-navigation-size: 15px;
+  --swiper-navigation-color: currentColor;
+  --swiper-navigation-sides-offset: 2px;
 }
 .generation-carousel .swiper-button-prev,
 .generation-carousel .swiper-button-next {
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   border-radius: 999px;
   border: 1px solid var(--hairline-strong);
-  background: var(--bg-surface);
-  transition: color 0.2s, border-color 0.2s;
+  background: color-mix(in srgb, var(--bg-surface) 80%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 28px -12px rgba(0, 0, 0, 0.75);
+  color: var(--text-secondary);
+  transition:
+    color 0.2s var(--ease-premium),
+    background-color 0.2s var(--ease-premium),
+    border-color 0.2s var(--ease-premium),
+    transform 0.2s var(--ease-premium);
+}
+.generation-carousel .swiper-button-prev::after,
+.generation-carousel .swiper-button-next::after {
+  font-weight: 800;
 }
 .generation-carousel .swiper-button-prev:hover,
 .generation-carousel .swiper-button-next:hover {
-  color: var(--accent-blue-text);
-  border-color: var(--accent-blue-border-hover);
+  color: #fff;
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  transform: scale(1.08);
+}
+.generation-carousel .swiper-button-prev:active,
+.generation-carousel .swiper-button-next:active {
+  transform: scale(0.95);
+}
+.generation-carousel .swiper-button-disabled {
+  opacity: 0.35;
+}
+@media (max-width: 640px) {
+  .generation-carousel .swiper-button-prev,
+  .generation-carousel .swiper-button-next {
+    width: 38px;
+    height: 38px;
+  }
 }
 
 /* Cursor-following spotlight, tracked via --spot-x/--spot-y set from JS. */
@@ -232,10 +261,13 @@ a, button, [role="button"], summary, label {
   100% { opacity: 1; }
 }
 
-/* Fires once, shortly after load. The short lead-in also lets React hydrate
-   and stamp `data-motion` before the animation starts, so an explicit
-   opt-in isn't briefly overridden by the OS media query. */
-.glitch--once .glitch-char {
+/* Fires once, when the loader gate lifts — `LoaderGate` stamps
+   `data-loaded` on <html> as it closes. Keying it there rather than on
+   mount means the flicker plays in front of the visitor instead of behind
+   the gate (which is why it used to need a reload to be seen). Until then
+   the characters just sit solid and readable. The lead-in in
+   `--flicker-delay` also leaves room for `data-motion` to be stamped. */
+:root[data-loaded] .glitch--once .glitch-char {
   animation-name: char-flicker;
 }
 
@@ -323,6 +355,32 @@ a, button, [role="button"], summary, label {
   }
 }
 
+/* Scroll-driven counterpart to the hover state above: whichever row sits in
+   the middle band of the viewport gets `.is-active` from JS (see
+   `MeetTheLab`) and lights up the same way a hovered row does — so the
+   active row reads clearly while scrolling, not only under a pointer.
+   Unlike the hover rules this isn't gated to `(hover: hover)`: touch
+   scrolling drives it too, which is strictly more legible than the flat
+   "everything full-bright" touch fallback it layers on top of. */
+.spotlight-row.is-active {
+  opacity: 1;
+}
+
+.spotlight-row.is-active .spotlight-photo {
+  filter: grayscale(0) brightness(1);
+  transform: scale(1.03);
+}
+
+.spotlight-row.is-active .spotlight-underline {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) {
+  .spotlight-list:has(.spotlight-row.is-active) .spotlight-row:not(.is-active):not(:hover) {
+    opacity: 0.25;
+  }
+}
+
 /* ── Lecturer zigzag rows ────────────────────────────────────────────────
    Each lecturer is one box — photo plus copy — pinned hard to the left
    margin, then the right, leaving the opposite side of the page empty. The
@@ -332,7 +390,19 @@ a, button, [role="button"], summary, label {
    Hovering a row lights the whole box, not just its copy, and brings the
    photo back to colour. Body copy never dims below full readability here —
    these are full bios, unlike the one-line blurbs on the Home spotlight. */
-.lecturer-row,
+/* The rows' sideways slide-in (`translateX` on `.lecturer-row-inner`)
+   overflows a little; clip it here — `.lecturer-list` is deep content with
+   no `position: sticky` inside, so `overflow-x: clip` costs nothing (window
+   scroll / Lenis unaffected) and `overflow-y` stays visible for the
+   portrait's poke above its card. */
+.lecturer-list {
+  overflow-x: clip;
+}
+
+.lecturer-row {
+  transition: opacity 450ms var(--ease-premium);
+}
+
 .lecturer-row .lecturer-box,
 .lecturer-row .lecturer-photo-frame {
   transition:
@@ -340,6 +410,30 @@ a, button, [role="button"], summary, label {
     background-color 450ms var(--ease-premium),
     border-color 450ms var(--ease-premium),
     box-shadow 450ms var(--ease-premium);
+}
+
+/* Slide + fade on scroll — plain CSS driven by `.is-visible` (toggled from
+   `useInView`, see `LecturerShowcase`). Replays every time a row crosses
+   into view in either direction. Left rows start shifted left and slide
+   right into place; right rows start shifted right and slide left; leaving
+   view reverses each (the opposite direction). Lives on the inner wrapper,
+   not the observed <article>, so the box `useInView` watches never moves. */
+.lecturer-row .lecturer-row-inner {
+  --row-enter-x: -72px;
+  opacity: 0;
+  transform: translateX(var(--row-enter-x));
+  transition:
+    opacity 650ms var(--ease-premium),
+    transform 800ms var(--ease-premium);
+}
+
+.lecturer-row--right .lecturer-row-inner {
+  --row-enter-x: 72px;
+}
+
+.lecturer-row.is-visible .lecturer-row-inner {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .lecturer-row .lecturer-photo {
@@ -374,10 +468,6 @@ a, button, [role="button"], summary, label {
     background-color: var(--bg-surface-raised);
     border-color: var(--accent-blue-border-hover);
     box-shadow: 0 0 32px -8px rgba(14, 116, 188, 0.45);
-  }
-
-  .lecturer-row:hover .lecturer-photo-frame {
-    border-color: var(--accent-blue-border-hover);
   }
 
   .lecturer-row:hover .lecturer-underline {

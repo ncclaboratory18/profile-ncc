@@ -2,9 +2,10 @@
 
 import { useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { A11y, EffectCoverflow, Navigation } from "swiper/modules";
+import { A11y, Autoplay, EffectCoverflow, Navigation } from "swiper/modules";
 import { MemberCard } from "@/components/roster/MemberCard";
 import { loopCopies, CAROUSEL_BREAKPOINTS } from "@/lib/carouselLoop";
+import { useReducedMotion } from "@/lib/reduced-motion";
 import type { TeamMember } from "@/lib/types";
 
 import "swiper/css";
@@ -16,13 +17,16 @@ const COORDINATOR_ROLE = "lab coordinator";
 
 /**
  * One Swiper `effect-coverflow` carousel per generation — the real 3D
- * carousel engine, not a hand-rolled transform system. No autoplay: manual
- * drag/swipe/arrow-click is the primary interaction (arrows styled in
- * globals.css under `.generation-carousel`). The roster repeats so the loop
- * never dead-ends in either direction, and the generation's koor lab card
- * renders larger with a persistent glow and a badge, centered on open.
+ * carousel engine, not a hand-rolled transform system. Autoplay advances it
+ * on its own while idle and pauses whenever the pointer is over it or the
+ * user drags/clicks an arrow (`disableOnInteraction: false` so it resumes
+ * once they stop). Arrows styled in globals.css under `.generation-carousel`.
+ * The roster repeats so the loop never dead-ends in either direction, and
+ * the generation's koor lab card renders larger with a persistent glow and a
+ * badge, centered on open.
  */
 export function GenerationCarousel({ members }: { members: TeamMember[] }) {
+  const reduce = useReducedMotion();
   const { slides, initialSlide } = useMemo(() => {
     if (members.length === 0) return { slides: [], initialSlide: 0 };
 
@@ -51,11 +55,20 @@ export function GenerationCarousel({ members }: { members: TeamMember[] }) {
       // A11y is not optional here: Swiper renders its nav arrows as plain
       // <div>s, so without this module they carry no role, label, or keyboard
       // handling.
-      modules={[A11y, EffectCoverflow, Navigation]}
+      modules={[A11y, Autoplay, EffectCoverflow, Navigation]}
       a11y={{
         prevSlideMessage: "Previous member",
         nextSlideMessage: "Next member",
       }}
+      autoplay={
+        reduce
+          ? false
+          : {
+              delay: 3200,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }
+      }
       effect="coverflow"
       centeredSlides
       // Numeric slidesPerView, not "auto": with "auto" Swiper derives it from

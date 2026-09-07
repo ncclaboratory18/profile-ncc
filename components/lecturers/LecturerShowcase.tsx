@@ -1,37 +1,37 @@
 "use client";
 
 import Image from "next/image";
-import { motion, type Variants } from "motion/react";
-import { useReducedMotion } from "@/lib/reduced-motion";
+import Link from "next/link";
+import { useRef } from "react";
+import { useInView } from "motion/react";
 import type { Lecturer } from "@/lib/types";
 
-const EASE_PREMIUM = [0.16, 1, 0.3, 1] as const;
-
-function rowVariants(fromLeft: boolean): Variants {
-  return {
-    hidden: { opacity: 0, x: fromLeft ? -72 : 72 },
-    show: { opacity: 1, x: 0, transition: { duration: 0.65, ease: EASE_PREMIUM } },
-  };
-}
-
-const rowVariantsReduced: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: 0.3 } },
-};
-
 /**
- * Zigzag roster. Each lecturer is one box — photo plus copy — pinned hard to
- * the left margin, then the right, with the opposite side of the page left
- * empty. The box is capped well under half the page width so the swing
- * between sides actually reads; a wider box would creep back toward centre
- * and flatten the alternation.
+ * Zigzag roster. At `lg+` each row is a wide, short horizontal bar bled off
+ * its own side of the *viewport* (`w: 52vw` + `margin: calc(50% - 50vw)` on
+ * the outer side) and run past the page centre on the inner side, with
+ * small padding. The copy is a column pinned toward the bar's inner side
+ * with a gap to the portrait; the portrait is `position: absolute` pinned
+ * to the bar's inner-*top* corner (`top: -3.5rem`, `right`/`left: -3rem`,
+ * i.e. nudged a little past the corner toward page centre)
+ * — same offset on every card, so it lands on the identical spot each time.
+ * The bar's `min-h` is at least the portrait's height so the photo never
+ * pokes past a short card's bottom edge; longer bios grow the bar downward
+ * below the photo, and the wide row gap absorbs it. Below `lg` (tablet,
+ * mobile) it degrades to a plain stacked card: portrait above the text, no
+ * absolute positioning.
  *
- * Hover highlighting lives in CSS (`.lecturer-*` in globals.css) behind
- * `@media (hover: hover)`, so touch devices get the lit state by default.
+ * Rows slide + fade in on scroll — a plain CSS transition keyed off
+ * `.is-visible` (see `.lecturer-row` in globals.css), toggled by
+ * `useInView` (`once: false`) every time a row crosses the viewport band
+ * (shrunk 15% top and bottom). Left cards come in from the left, right from
+ * the right, and reverse out. The travel is a small 56px, clipped on each
+ * <article> (not the list or page) so it can't widen the viewport or stick
+ * the scroll.
  */
 export function LecturerShowcase({ lecturers }: { lecturers: Lecturer[] }) {
   return (
-    <div className="lecturer-list flex flex-col gap-12 sm:gap-16 lg:gap-24">
+    <div className="lecturer-list flex flex-col gap-14 sm:gap-20 lg:gap-32">
       {lecturers.map((lecturer, i) => (
         <LecturerRow
           key={lecturer.id}
@@ -54,75 +54,103 @@ function LecturerRow({
   /** The first row sits above the fold — load it eagerly for LCP. */
   priority?: boolean;
 }) {
-  const reduce = useReducedMotion();
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0, margin: "-15% 0px -15% 0px", once: false });
 
-  return (
-    <motion.article
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.25 }}
-      variants={reduce ? rowVariantsReduced : rowVariants(onLeft)}
-      className={`lecturer-row flex ${
-        onLeft ? "justify-start" : "lecturer-row--right justify-end"
+  const portrait = (
+    <div
+      className={`lecturer-photo-frame relative z-20 mx-auto mb-6 aspect-[3/4] w-48 overflow-hidden rounded-[var(--radius-control)] border border-hairline-strong bg-bg-surface shadow-[0_24px_56px_-18px_rgba(0,0,0,0.75)] sm:w-52 lg:absolute lg:top-[-3.5rem] lg:mx-0 lg:mb-0 lg:w-72 ${
+        onLeft
+          ? "lg:right-[-3rem]"
+          : "lg:left-[-3rem]"
       }`}
     >
-      {/* One surfaced box per lecturer — this is the element that lights up. */}
+      {lecturer.photo ? (
+        <Image
+          src={lecturer.photo}
+          alt={lecturer.name}
+          fill
+          sizes="(min-width: 1280px) 320px, (min-width: 1024px) 288px, (min-width: 640px) 240px, 192px"
+          priority={priority}
+          className="lecturer-photo object-cover"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-bg-surface-raised font-display text-2xl text-text-secondary">
+          {lecturer.name
+            .split(" ")
+            .map((n) => n[0])
+            .slice(0, 2)
+            .join("")}
+        </div>
+      )}
+    </div>
+  );
+
+  const plate = (
+    <Link
+      href={`/lecturers/${lecturer.id}`}
+      className={`lecturer-box relative z-10 flex w-full flex-col justify-center rounded-[var(--radius-control)] border border-hairline bg-bg-surface/90 p-6 text-center sm:w-[46vw] sm:shrink-0 sm:p-7 lg:min-h-[22rem] lg:w-[52vw] lg:py-6 ${
+        onLeft
+          ? "sm:ml-[calc(50%-50vw)] lg:pl-8 lg:pr-[19rem] lg:text-left"
+          : "sm:mr-[calc(50%-50vw)] lg:pl-[19rem] lg:pr-8 lg:text-right"
+      }`}
+    >
+      {portrait}
+
+      {/* lg: a long thin bar bled to the outer edge and run well past page
+          centre. The copy is a wide column pinned toward the bar's inner
+          side, a comfortable gap from the page-centred portrait that `pr` /
+          `pl` reserves room for. No clamp / height cap — the full bio shows
+          and the bar grows down. sm and below: a plain stacked card,
+          portrait above the text. */}
       <div
-        className={`lecturer-box flex w-full max-w-xl flex-col gap-5 rounded-[var(--radius-card)] border border-hairline bg-bg-surface/70 p-5 sm:flex-row sm:items-stretch sm:gap-6 sm:p-6 lg:max-w-3xl lg:gap-8 lg:p-8 ${
-          onLeft ? "" : "sm:flex-row-reverse"
+        className={`lecturer-copy mx-auto w-full sm:max-w-[16rem] lg:max-w-[23rem] ${
+          onLeft ? "lg:mx-0 lg:ml-auto" : "lg:mx-0 lg:mr-auto"
         }`}
       >
-        <div className="lecturer-photo-frame relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-[var(--radius-control)] border border-hairline bg-bg-surface sm:aspect-[3/4] sm:w-40 lg:w-52 xl:w-56">
-          {lecturer.photo ? (
-            <Image
-              src={lecturer.photo}
-              alt={lecturer.name}
-              fill
-              sizes="(min-width: 1280px) 224px, (min-width: 1024px) 208px, (min-width: 640px) 160px, 100vw"
-              priority={priority}
-              className="lecturer-photo object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-bg-surface-raised font-display text-2xl text-text-secondary">
-              {lecturer.name
-                .split(" ")
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join("")}
-            </div>
-          )}
-        </div>
-
-        {/* Copy hugs the same edge the box does, so a right-hand row reads
-            right-aligned rather than left-aligned inside a right-shifted box. */}
-        <div className={`min-w-0 flex-1 ${onLeft ? "text-left" : "sm:text-right"}`}>
-          {lecturer.role && (
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent-blue-text sm:text-[11px]">
-              {lecturer.role}
-            </p>
-          )}
-
-          <h3 className="mt-2 font-display text-xl font-semibold leading-tight text-text-primary sm:text-2xl lg:text-3xl">
-            {lecturer.name}
-          </h3>
-          <span
-            aria-hidden="true"
-            className={`lecturer-underline mt-3 block h-px w-16 bg-accent-blue ${
-              onLeft ? "" : "sm:ml-auto"
-            }`}
-          />
-
-          <p className="mt-3 font-sans text-xs text-text-secondary sm:text-sm">
-            {lecturer.title}
+        {lecturer.role && (
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent-blue-text sm:text-xs">
+            {lecturer.role}
           </p>
+        )}
 
-          {lecturer.bio && (
-            <p className="mt-4 font-sans text-sm leading-relaxed text-text-secondary sm:text-base">
-              {lecturer.bio}
-            </p>
-          )}
-        </div>
+        <h3 className="mt-2 font-display text-2xl font-semibold leading-tight text-text-primary sm:text-3xl">
+          {lecturer.name}
+        </h3>
+        <span
+          aria-hidden="true"
+          className={`lecturer-underline mt-3 block h-px w-16 bg-accent-blue ${
+            onLeft ? "mx-auto lg:mx-0" : "mx-auto lg:ml-auto"
+          }`}
+        />
+
+        <p className="mt-3 font-sans text-sm text-text-secondary sm:text-base">
+          {lecturer.title}
+        </p>
+
+        {lecturer.bio && (
+          <p className="mt-3 font-sans text-sm leading-relaxed text-text-secondary sm:text-justify sm:text-base [hyphens:auto]">
+            {lecturer.bio}
+          </p>
+        )}
       </div>
-    </motion.article>
+    </Link>
+  );
+
+  return (
+    <article
+      ref={ref}
+      className={`lecturer-row ${
+        onLeft ? "" : "lecturer-row--right"
+      } ${inView ? "is-visible" : ""}`}
+    >
+      <div
+        className={`lecturer-row-inner flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-0 ${
+          onLeft ? "sm:justify-start" : "sm:justify-end"
+        }`}
+      >
+        {plate}
+      </div>
+    </article>
   );
 }

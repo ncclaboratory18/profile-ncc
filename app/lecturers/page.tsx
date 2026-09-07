@@ -19,19 +19,23 @@ export default function LecturersPage() {
           </h1>
           <p className="mx-auto mt-3 max-w-[52ch] font-sans text-base leading-relaxed text-text-secondary">
             Faculty supervising the NCC Lab within the Department of
-            Informatics Engineering, ITS.
+            Informatics Engineering, ITS. Select a card for a full profile.
           </p>
         </div>
       </div>
 
-      {/* Full-bleed on purpose: a centered max-width container would pull both
-          sides back toward the middle of a wide screen, which is what made the
-          alternation read as "still centered". */}
-      <div className="w-full px-4 pt-20 sm:px-8 lg:px-16">
+      {/* No max-width / padding wrapper here on purpose: each row's plate is
+          viewport-anchored (`calc(50vw …)` in `LecturerShowcase`) so it can
+          run flush to the page edge, and the horizontal overflow from that
+          and from the slide animation is clipped on `.lecturer-list` itself
+          — deep enough in the tree that it never becomes the scroll
+          container for the window / Lenis or for any `position: sticky`
+          section elsewhere on the site. */}
+      <div className="w-full pt-20">
         {lecturers.length > 0 ? (
           <LecturerShowcase lecturers={lecturers} />
         ) : (
-          <p className="text-center font-sans text-sm text-text-tertiary">
+          <p className="mx-auto max-w-7xl px-6 text-center font-sans text-sm text-text-tertiary">
             No lecturers recorded yet.
           </p>
         )}

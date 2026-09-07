@@ -2,36 +2,70 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { motion, useTransform, type MotionValue } from "motion/react";
 import { useReducedMotion } from "@/lib/reduced-motion";
+import { useSectionProgress } from "@/lib/useSectionProgress";
 import { railPhotos, type GalleryPhoto } from "@/lib/gallery";
-import { fadeRange } from "@/lib/railFade";
 import { HeroParticles } from "./HeroParticles";
 
+type Metrics = {
+  step: number;
+  frameW: number;
+  padLeft: number;
+  /** Travel of one full set of frames, px. */
+  loop: number;
+  /** Track translate at progress 0 — puts the middle frame on screen centre. */
+  t0: number;
+};
+
+/**
+ * Infinite, centre-anchored carousel. At the start of the pinned section the
+ * middle frame sits dead centre and lit; scrolling advances the rail left,
+ * each frame lighting as it crosses centre, and frames that leave on the
+ * left reappear on the right (a second identical copy is rendered, so one
+ * full `loop` of travel returns the same picture to centre — seamless).
+ *
+ * The section is a plain fixed height and progress comes from
+ * `useSectionProgress` (the section's live rect, sampled each frame), so it
+ * never drifts against Lenis' eased scroll the way Motion's cached
+ * `useScroll` did.
+ */
 export function PhotoRail() {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
-  const [distance, setDistance] = useState(0);
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
-  const x = useTransform(scrollYProgress, [0, 1], [0, -distance]);
+  const scrollYProgress = useSectionProgress(sectionRef);
+
+  const loop = metrics?.loop ?? 0;
+  const t0 = metrics?.t0 ?? 0;
+  const x = useTransform(scrollYProgress, [0, 1], [t0, t0 - loop]);
 
   useEffect(() => {
     const track = trackRef.current;
-    if (!track) return;
+    if (!track || reduce) return;
 
     function measure() {
       if (!track) return;
-      setDistance(Math.max(0, track.scrollWidth - window.innerWidth + 48));
+      const kids = track.children;
+      if (kids.length < 2) return;
+      const frameW = (kids[0] as HTMLElement).offsetWidth;
+      // offsetLeft / offsetWidth are layout metrics — unaffected by the
+      // track's own transform, so this is safe to read at any scroll pos.
+      const step =
+        (kids[1] as HTMLElement).offsetLeft - (kids[0] as HTMLElement).offsetLeft;
+      if (!step || !frameW) return;
+      const padLeft = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+      const count = railPhotos.length;
+      const mid = Math.floor((count - 1) / 2);
+      setMetrics({
+        step,
+        frameW,
+        padLeft,
+        loop: step * count,
+        t0: window.innerWidth / 2 - padLeft - mid * step - frameW / 2,
+      });
     }
 
     measure();
@@ -42,7 +76,7 @@ export function PhotoRail() {
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, []);
+  }, [reduce]);
 
   const heading = (
     <div className="mb-8 flex items-baseline justify-between gap-4">
@@ -56,11 +90,6 @@ export function PhotoRail() {
   );
 
   // Reduced motion (and touch users who prefer it): a plain native scroll rail.
-  //
-  // `sectionRef` stays attached in this branch too. `useScroll` above runs
-  // unconditionally, and Motion throws "Target ref is defined but not
-  // hydrated" if the ref it was handed never lands on an element — which is
-  // exactly what happens when the preference flips to reduced after mount.
   if (reduce) {
     return (
       <section ref={sectionRef} className="border-t border-hairline py-20">
@@ -78,25 +107,40 @@ export function PhotoRail() {
   }
 
   return (
-    <section ref={sectionRef} className="relative h-[320vh] border-t border-hairline">
+    <section
+      ref={sectionRef}
+      className="relative h-[360vh] border-t border-hairline"
+    >
       <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">{heading}</div>
 
-        <motion.div ref={trackRef} style={{ x }} className="flex gap-5 px-4 sm:px-6 lg:px-8">
-          {railPhotos.map((photo, i) => (
-            <div
-              key={photo.src}
-              className="w-[76vw] shrink-0 sm:w-[34vw] lg:w-[26vw]"
-            >
-              <RailFrame photo={photo} />
-              <RailCaptionScrubbed
-                photo={photo}
-                progress={scrollYProgress}
-                index={i}
-                count={railPhotos.length}
-              />
-            </div>
-          ))}
+        <motion.div
+          ref={trackRef}
+          style={{ x, opacity: metrics ? 1 : 0 }}
+          className="flex gap-5 px-4 will-change-transform sm:px-6 lg:px-8"
+        >
+          {[0, 1].map((copy) =>
+            railPhotos.map((photo, i) => (
+              <div
+                key={`${copy}-${photo.src}`}
+                className="w-[76vw] shrink-0 sm:w-[34vw] lg:w-[26vw]"
+              >
+                <RailFrameLoop
+                  photo={photo}
+                  progress={scrollYProgress}
+                  j={copy * railPhotos.length + i}
+                  metrics={metrics}
+                  priority={copy === 0 && i < 3}
+                />
+                <RailCaptionLoop
+                  photo={photo}
+                  progress={scrollYProgress}
+                  j={copy * railPhotos.length + i}
+                  metrics={metrics}
+                />
+              </div>
+            )),
+          )}
         </motion.div>
       </div>
 
@@ -108,6 +152,17 @@ export function PhotoRail() {
   );
 }
 
+const RAIL_SIZES = "(min-width: 1024px) 26vw, (min-width: 640px) 34vw, 76vw";
+
+/** 0 when the frame is a full `step` (or more) off centre, 1 when dead centre. */
+function centredness(j: number, p: number, m: Metrics | null): number {
+  if (!m) return 0;
+  const x = m.t0 - p * m.loop;
+  const centre = m.padLeft + j * m.step + m.frameW / 2 + x;
+  const d = Math.abs(centre - window.innerWidth / 2);
+  return Math.max(0, Math.min(1, 1 - d / m.step));
+}
+
 function RailFrame({ photo }: { photo: GalleryPhoto }) {
   return (
     <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface">
@@ -115,11 +170,63 @@ function RailFrame({ photo }: { photo: GalleryPhoto }) {
         src={photo.src}
         alt={photo.caption}
         fill
-        sizes="(min-width: 1024px) 26vw, (min-width: 640px) 34vw, 76vw"
-        className="object-cover [filter:grayscale(0.3)_brightness(0.8)]"
+        sizes={RAIL_SIZES}
+        className="object-cover [filter:grayscale(0.25)_brightness(0.9)]"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/70 to-transparent" />
     </div>
+  );
+}
+
+/**
+ * Frame that lifts as it passes the centre of the viewport: it scales up a
+ * touch, a dark veil over it fades away (so it reads brighter and in
+ * colour), and a blue accent ring fades in. All three are opacity / scale —
+ * compositor-only — so a rail of a dozen frames restyling every scroll
+ * frame stays cheap. An earlier version animated a CSS `filter` per frame,
+ * which repainted the whole rail on every tick and made scrolling stutter.
+ */
+function RailFrameLoop({
+  photo,
+  progress,
+  j,
+  metrics,
+  priority,
+}: {
+  photo: GalleryPhoto;
+  progress: MotionValue<number>;
+  j: number;
+  metrics: Metrics | null;
+  priority?: boolean;
+}) {
+  const t = useTransform(progress, (p) => centredness(j, p, metrics));
+  const scale = useTransform(t, [0, 1], [0.95, 1.03]);
+  const veil = useTransform(t, [0, 1], [0.55, 0]);
+  const ring = useTransform(t, [0, 1], [0, 0.55]);
+
+  return (
+    <motion.div
+      style={{ scale }}
+      className="relative aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface will-change-transform"
+    >
+      <Image
+        src={photo.src}
+        alt={photo.caption}
+        fill
+        sizes={RAIL_SIZES}
+        priority={priority}
+        className="object-cover [filter:grayscale(0.3)]"
+      />
+      <motion.div
+        style={{ opacity: veil }}
+        className="pointer-events-none absolute inset-0 bg-bg-primary"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/70 to-transparent" />
+      <motion.div
+        style={{ opacity: ring }}
+        className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)] ring-2 ring-inset ring-accent-blue"
+      />
+    </motion.div>
   );
 }
 
@@ -133,18 +240,18 @@ function RailCaption({ photo }: { photo: GalleryPhoto }) {
 }
 
 /** Caption brightens as its frame passes the centre of the viewport. */
-function RailCaptionScrubbed({
+function RailCaptionLoop({
   photo,
   progress,
-  index,
-  count,
+  j,
+  metrics,
 }: {
   photo: GalleryPhoto;
   progress: MotionValue<number>;
-  index: number;
-  count: number;
+  j: number;
+  metrics: Metrics | null;
 }) {
-  const opacity = useTransform(progress, fadeRange(index, count), [0.3, 1, 0.3]);
+  const opacity = useTransform(progress, (p) => 0.3 + 0.7 * centredness(j, p, metrics));
 
   return (
     <motion.div className="mt-4" style={{ opacity }}>

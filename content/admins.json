@@ -1,47 +1,5 @@
 [
   {
-    "id": "rangga-wijaya",
-    "name": "Rangga Wijaya Kusuma",
-    "nickname": "Rangga",
-    "team": "admin",
-    "role": "Lab Coordinator",
-    "generation": "2022",
-    "major": "Informatics",
-    "nrp": "5025201012",
-    "photo": "https://picsum.photos/seed/ncc-rangga/600/750",
-    "email": "rangga.wijaya@student.its.ac.id",
-    "instagram": "@ranggawk",
-    "bio": "Rangga was the founding coordinator of NCC Lab's admin team, setting up the onboarding process and lab operations that later generations still follow."
-  },
-  {
-    "id": "citra-permatasari",
-    "name": "Citra Permatasari",
-    "nickname": "Citra",
-    "team": "admin",
-    "role": "Admin",
-    "generation": "2022",
-    "major": "Informatics",
-    "nrp": "5025201028",
-    "photo": "https://picsum.photos/seed/ncc-citra/600/750",
-    "email": "citra.permatasari@student.its.ac.id",
-    "instagram": "@citraprmts",
-    "bio": "Citra managed the lab's first cohort of sponsorships and partner outreach, laying the groundwork for the lab's external relationships."
-  },
-  {
-    "id": "dimas-nugraha",
-    "name": "Dimas Adi Nugraha",
-    "nickname": "Dimas",
-    "team": "admin",
-    "role": "Finance",
-    "generation": "2022",
-    "major": "Informatics",
-    "nrp": "5025201045",
-    "photo": "https://picsum.photos/seed/ncc-dimas/600/750",
-    "email": "dimas.nugraha@student.its.ac.id",
-    "instagram": "@dimasadng",
-    "bio": "Dimas handled the lab's earliest budgeting and equipment purchases, setting up the financial tracking still used today."
-  },
-  {
     "id": "danish-abqori",
     "name": "Muhammad Quthbi Danish Abqori",
     "nickname": "Danish",

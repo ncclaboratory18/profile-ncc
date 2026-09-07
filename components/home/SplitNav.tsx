@@ -39,9 +39,12 @@ export function SplitNav() {
             alt=""
             fill
             sizes="(min-width: 768px) 50vw, 100vw"
-            className="object-cover opacity-0 [filter:grayscale(0.4)_brightness(0.45)] transition-opacity duration-300 ease-[var(--ease-premium)] group-hover:opacity-100 group-focus-visible:opacity-100"
+            // Always visible, just heavily dimmed at rest — hover lifts it
+            // brighter and closer to full colour rather than revealing it
+            // from pure black.
+            className="object-cover [filter:grayscale(0.7)_brightness(0.32)] transition-[filter] duration-300 ease-[var(--ease-premium)] group-hover:[filter:grayscale(0.15)_brightness(0.62)] group-focus-visible:[filter:grayscale(0.15)_brightness(0.62)]"
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/55 to-bg-primary/10 opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
 
           <div className="relative">
             {mark ? (

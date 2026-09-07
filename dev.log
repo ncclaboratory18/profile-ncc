@@ -1,0 +1,34 @@
+
+> profile-ncc@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://100.87.45.53:3000
+✓ Ready in 1316ms
+✓ Running next.config.ts took 100ms
+
+ GET /lecturers 200 in 1002ms (next.js: 589ms, application-code: 413ms)
+ GET / 200 in 294ms (next.js: 53ms, application-code: 242ms)
+ GET /lecturers 200 in 103ms (next.js: 20ms, application-code: 83ms)
+ GET /lecturers 200 in 116ms (next.js: 9ms, application-code: 108ms)
+ GET /lecturers 200 in 92ms (next.js: 7ms, application-code: 86ms)
+✓ Compiled in 188ms
+ GET /lecturers 200 in 272ms (next.js: 204ms, application-code: 68ms)
+ GET / 200 in 288ms (next.js: 57ms, application-code: 231ms)
+ GET /lecturers 200 in 118ms (next.js: 6ms, application-code: 112ms)
+ GET /lecturers 200 in 250ms (next.js: 166ms, application-code: 84ms)
+ GET / 200 in 310ms (next.js: 41ms, application-code: 269ms)
+✓ Compiled in 615ms
+✓ Compiled in 123ms
+✓ Compiled in 192ms
+ GET /lecturers 200 in 129ms (next.js: 8ms, application-code: 121ms)
+ GET /lecturers 200 in 82ms (next.js: 4ms, application-code: 77ms)
+[browser] Image with src "https://picsum.photos/seed/ncc-hudan/500/600" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[browser] Image with src "https://picsum.photos/seed/ncc-nafkhan/500/600" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+ GET / 200 in 442ms (next.js: 6ms, application-code: 436ms)
+ GET /lecturers 200 in 33ms (next.js: 7ms, application-code: 26ms)
+ GET /lecturers 200 in 77ms (next.js: 4ms, application-code: 73ms)
+[?25h

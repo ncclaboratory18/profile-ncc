@@ -13,15 +13,6 @@ export function Hero() {
 
       <RevealGroup className="relative mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
         <RevealItem>
-          <span className="inline-flex items-center gap-2 rounded-[var(--radius-chip)] border border-hairline-strong bg-bg-primary/50 px-3 py-1.5 backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-success" />
-            <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-secondary">
-              Now recruiting — Gen 2026
-            </span>
-          </span>
-        </RevealItem>
-
-        <RevealItem className="mt-8">
           <NccMark height={72} priority />
         </RevealItem>
 

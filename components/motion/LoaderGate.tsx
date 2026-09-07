@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/lib/reduced-motion";
 import { useEffect, useState } from "react";
 import { NccMark } from "@/components/brand/NccMark";
+import { getLenisInstance } from "@/lib/lenisStore";
 
 const SEEN_KEY = "ncc-loader-seen";
 
@@ -25,16 +26,32 @@ export function LoaderGate() {
     // visitor behind it.
     const hold = reduce ? 0 : sessionStorage.getItem(SEEN_KEY) ? 250 : 1000;
 
-    if (!reduce) document.body.style.overflow = "hidden";
+    // Lenis keeps its own virtual scroll target independent of the real
+    // scrollTop. Blocking scroll with `overflow: hidden` alone still lets
+    // Lenis's wheel listener accumulate a target the page never actually
+    // reached — when the gate lifts, Lenis animates toward that stale
+    // target and scrolling reads as stuck or jumpy. Stopping Lenis for the
+    // hold keeps its target in sync with the real (frozen) position.
+    if (!reduce) {
+      document.body.style.overflow = "hidden";
+      getLenisInstance()?.stop();
+    }
     const timer = setTimeout(() => {
       sessionStorage.setItem(SEEN_KEY, "1");
       setOpen(false);
       document.body.style.overflow = "";
+      // Release the hero's one-shot glitch animation now, not on mount —
+      // it plays behind the gate otherwise and the visitor never sees it
+      // unless they reload. Gated in globals.css on `:root[data-loaded]`.
+      document.documentElement.setAttribute("data-loaded", "");
+      getLenisInstance()?.start();
     }, hold);
 
     return () => {
       clearTimeout(timer);
       document.body.style.overflow = "";
+      document.documentElement.setAttribute("data-loaded", "");
+      getLenisInstance()?.start();
     };
   }, [reduce]);
 

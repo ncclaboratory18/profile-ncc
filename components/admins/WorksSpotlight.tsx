@@ -6,86 +6,86 @@ import Image from "next/image";
 import { useInView } from "motion/react";
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/motion/Reveal";
-import { GlitchText } from "@/components/motion/GlitchText";
-import { spotlightPeople, type SpotlightPerson } from "@/lib/spotlight";
+import type { Project } from "@/lib/types";
 
 /**
- * Zigzag people spotlight: one person per row, photo alternating left and
- * right down the page. Rows rest dimmed and brighten on hover/focus *or*
- * once scrolled to the middle of the viewport — so the active row is always
- * legible while scrolling, not only while a pointer happens to sit on it.
- * The hover half of that lives in CSS (`.spotlight-*` in globals.css); the
- * scroll half is tracked here per-row and mirrors the same classes.
+ * "Our works" — the same zigzag spotlight as the Home page's "Meet the lab",
+ * reusing the `.spotlight-*` styles for the dim-at-rest / brighten-on-hover
+ * (and brighten-when-scrolled-to-centre) behaviour. Each row links to the
+ * project's own page.
  */
-export function MeetTheLab() {
-  if (spotlightPeople.length === 0) return null;
+export function WorksSpotlight({ projects }: { projects: Project[] }) {
+  if (projects.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:px-8">
       <Reveal>
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-text-tertiary">
-          Meet the lab
+          Our works
         </p>
         <h2 className="mt-3 max-w-[20ch] font-display text-3xl font-semibold leading-[1.1] text-text-primary sm:text-5xl">
-          The people behind the work
+          What&apos;s coming out of the lab
         </h2>
       </Reveal>
 
       <div className="spotlight-list mt-16 flex flex-col gap-14 sm:gap-20">
-        {spotlightPeople.map((person, i) => (
-          <SpotlightRow key={person.id} person={person} index={i} />
+        {projects.map((project, i) => (
+          <WorkRow key={project.id} project={project} index={i} />
         ))}
       </div>
     </section>
   );
 }
 
-function SpotlightRow({ person, index }: { person: SpotlightPerson; index: number }) {
+function WorkRow({ project, index }: { project: Project; index: number }) {
   const ref = useRef<HTMLAnchorElement>(null);
-  // Centred, generous band: the row is "active" for a comfortable stretch
-  // of scroll around the viewport's middle, not just a thin trigger line.
   const active = useInView(ref, { margin: "-35% 0px -35% 0px" });
+  const done = project.status === "completed";
+  const img = project.images[0];
 
   return (
     <Reveal>
       <Link
         ref={ref}
-        href={person.href}
-        className={`spotlight-row glitch-trigger group grid grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-12 ${
+        href={`/projects/${project.id}`}
+        className={`spotlight-row group grid grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-12 ${
           active ? "is-active" : ""
         }`}
       >
         <div className={index % 2 === 0 ? "lg:order-1" : "lg:order-2"}>
           <div className="relative aspect-[5/4] w-full overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface">
-            <Image
-              src={person.photo}
-              alt={person.name}
-              fill
-              sizes="(min-width: 1024px) 45vw, 92vw"
-              className="spotlight-photo object-cover"
-            />
+            {img && (
+              <Image
+                src={img}
+                alt={project.title}
+                fill
+                sizes="(min-width: 1024px) 45vw, 92vw"
+                className="spotlight-photo object-cover"
+              />
+            )}
           </div>
         </div>
 
         <div className={index % 2 === 0 ? "lg:order-2" : "lg:order-1"}>
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-blue-text">
-            {person.role}
+            {done ? "Completed" : "Ongoing"}
+            {project.year ? ` · ${project.year}` : ""}
           </p>
 
           <h3 className="mt-2 font-display text-2xl font-semibold text-text-primary sm:text-3xl">
-            <GlitchText text={person.name} trigger="hover" />
+            {project.title}
           </h3>
           <span
             aria-hidden="true"
             className="spotlight-underline mt-2 block h-px w-16 bg-accent-blue"
           />
 
-          <p className="mt-4 max-w-[46ch] font-sans text-base leading-relaxed text-text-secondary">
-            {person.blurb}
+          <p className="mt-4 line-clamp-3 max-w-[46ch] font-sans text-base leading-relaxed text-text-secondary">
+            {project.description}
           </p>
 
           <span className="mt-5 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary transition-colors group-hover:text-accent-blue-text">
-            View profile
+            View project
             <ArrowUpRight size={14} weight="bold" />
           </span>
         </div>

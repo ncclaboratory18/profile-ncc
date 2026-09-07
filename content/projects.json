@@ -2,22 +2,41 @@
   {
     "id": "iot-anomaly-detection",
     "title": "IoT Traffic Anomaly Detection",
-    "description": "Documentation for this project is coming soon.",
+    "description": "A streaming detector that flags abnormal device behaviour on the campus IoT network, running lightweight models on the edge gateway so alerts land in seconds rather than after a batch job.",
     "status": "ongoing",
-    "images": []
+    "year": "2025",
+    "images": ["https://picsum.photos/seed/ncc-proj-iot/1400/900"]
   },
   {
     "id": "mobile-forensics-toolkit",
     "title": "Mobile Forensics Toolkit",
-    "description": "Documentation for this project is coming soon.",
+    "description": "An acquisition and timeline-reconstruction toolkit for Android devices, built around reproducible, evidence-grade extraction steps that hold up under review.",
     "status": "ongoing",
-    "images": []
+    "year": "2025",
+    "images": ["https://picsum.photos/seed/ncc-proj-forensics/1400/900"]
   },
   {
     "id": "campus-sensor-mesh",
     "title": "Campus Sensor Mesh",
-    "description": "Documentation for this project is coming soon.",
+    "description": "A low-power wireless mesh of environmental sensors across the department building, with an aggregation layer that feeds a live dashboard and a public API.",
     "status": "completed",
-    "images": []
+    "year": "2024",
+    "images": ["https://picsum.photos/seed/ncc-proj-mesh/1400/900"]
+  },
+  {
+    "id": "distributed-log-pipeline",
+    "title": "Distributed Log Pipeline",
+    "description": "A fault-tolerant ingestion pipeline that collects, normalises, and indexes logs from every lab service, giving the security track one queryable timeline to hunt across.",
+    "status": "completed",
+    "year": "2024",
+    "images": ["https://picsum.photos/seed/ncc-proj-logs/1400/900"]
+  },
+  {
+    "id": "secure-session-handoff",
+    "title": "Secure Session Handoff",
+    "description": "A protocol and reference implementation for passing an authenticated session between a user's devices without re-authenticating, with formal checks on the key exchange.",
+    "status": "ongoing",
+    "year": "2025",
+    "images": ["https://picsum.photos/seed/ncc-proj-handoff/1400/900"]
   }
 ]
