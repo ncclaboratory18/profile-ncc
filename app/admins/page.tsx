@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HeroBackdrop } from "@/components/home/HeroBackdrop";
 import { GenerationCarousel } from "@/components/admins/GenerationCarousel";
+import { GenerationDeck } from "@/components/admins/GenerationDeck";
 import { WorksSpotlight } from "@/components/admins/WorksSpotlight";
 import { Reveal } from "@/components/motion/Reveal";
 import { admins, generationsOf, projects } from "@/lib/data";
@@ -9,6 +10,15 @@ import { heroPhoto } from "@/lib/gallery";
 export const metadata: Metadata = {
   title: "Admins — NCC Lab",
 };
+
+/**
+ * Generations rendered as a card deck instead of the coverflow carousel.
+ *
+ * A deliberate per-generation choice, not a rule derived from the data — the
+ * years listed here get the deck and every other year keeps the carousel, so
+ * adding a generation defaults to the carousel until it is named here.
+ */
+const DECK_GENERATIONS = new Set(["2023"]);
 
 export default function AdminsPage() {
   // Oldest generation first — reading top-to-bottom moves forward through time.
@@ -37,7 +47,11 @@ export default function AdminsPage() {
               </span>
             </Reveal>
             <Reveal delay={0.12}>
-              <GenerationCarousel members={admins.filter((m) => m.generation === gen)} />
+              {DECK_GENERATIONS.has(gen) ? (
+                <GenerationDeck members={admins.filter((m) => m.generation === gen)} />
+              ) : (
+                <GenerationCarousel members={admins.filter((m) => m.generation === gen)} />
+              )}
             </Reveal>
           </section>
         ))}

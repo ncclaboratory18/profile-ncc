@@ -5,7 +5,6 @@ import { fadeRange } from "../lib/railFade.ts";
 import {
   loopSlideCount,
   swiperLoopMinimum,
-  swiperLoopRequirement,
   CAROUSEL_BREAKPOINTS,
 } from "../lib/carouselLoop.ts";
 import {
@@ -55,7 +54,7 @@ for (let members = 1; members <= 8; members++) {
 //    slidesPerView, so its loop guard is fully determined here — no layout
 //    measurement involved, which is what made the "auto" version flaky.
 for (const [label, bp] of Object.entries(CAROUSEL_BREAKPOINTS)) {
-  const required = swiperLoopRequirement(bp.slidesPerView);
+  const required = swiperLoopMinimum(bp.slidesPerView);
   for (let members = 1; members <= 8; members++) {
     const slides = loopSlideCount(members);
     assert.ok(

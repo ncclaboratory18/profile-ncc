@@ -4,7 +4,11 @@ import { useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { A11y, Autoplay, EffectCoverflow, Mousewheel, Navigation } from "swiper/modules";
 import { MemberCard } from "@/components/roster/MemberCard";
-import { loopCopies, CAROUSEL_BREAKPOINTS } from "@/lib/carouselLoop";
+import {
+  loopCopies,
+  CAROUSEL_BREAKPOINTS,
+  LOOP_ADDITIONAL_SLIDES,
+} from "@/lib/carouselLoop";
 import { useReducedMotion } from "@/lib/reduced-motion";
 import type { TeamMember } from "@/lib/types";
 
@@ -88,6 +92,11 @@ export function GenerationCarousel({ members }: { members: TeamMember[] }) {
         1024: CAROUSEL_BREAKPOINTS[1024],
       }}
       loop
+      // Keeps Swiper's slide-reshuffle boundary outside the visible band —
+      // without it the cards near either end are seen being repositioned,
+      // because this carousel renders with `overflow: visible`. See
+      // `LOOP_ADDITIONAL_SLIDES`.
+      loopAdditionalSlides={LOOP_ADDITIONAL_SLIDES}
       initialSlide={initialSlide}
       speed={800}
       grabCursor
