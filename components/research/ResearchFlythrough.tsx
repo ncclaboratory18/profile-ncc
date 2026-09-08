@@ -34,30 +34,44 @@ const AREAS: Area[] = [
   },
   {
     n: "02",
+    title: "Botnet Detection",
+    body: "Identifying coordinated hosts from their traffic behaviour, and the command-and-control patterns that give a botnet away.",
+  },
+  {
+    n: "03",
+    title: "Steganography",
+    body: "Hiding and recovering data inside ordinary carriers — images, audio, network traffic — and the analysis that detects it.",
+  },
+  {
+    n: "04",
     title: "Digital Forensics",
     body: "Log analysis, incident reconstruction, and evidence-grade tooling for post-breach investigation.",
   },
   {
-    n: "03",
+    n: "05",
     title: "Distributed Systems",
     body: "Consensus, replication, and reliability for large-scale data processing infrastructure.",
   },
   {
-    n: "04",
+    n: "06",
     title: "Mobile & Pervasive Computing",
     body: "Resource-aware mobile services and context-driven applications across everyday devices.",
   },
   {
-    n: "05",
+    n: "07",
     title: "Cloud Computing",
     body: "Elastic infrastructure, scheduling, and the cost–reliability trade-offs of running at scale.",
   },
   {
-    n: "06",
+    n: "08",
     title: "IoT & Sensor Networks",
     body: "Low-power sensing, edge aggregation, and multimedia transport over constrained links.",
   },
 ];
+
+/** Scroll height per area. The section used to hard-code a total tuned for six
+    areas; deriving it keeps the fly-by speed the same as the list grows. */
+const VH_PER_AREA = 70;
 
 /** Camera position, in card-units, as scroll progress runs 0 -> 1. Starts
    almost level with the first card so it is close and prominent the instant
@@ -97,7 +111,11 @@ export function ResearchFlythrough() {
   // uses stays `visible`, and `clip` is not a scroll container) trims the
   // cards flying off the sides without any risk to the pin or Lenis.
   return (
-    <section ref={ref} className="relative h-[420vh] [overflow-x:clip]">
+    <section
+      ref={ref}
+      className="relative [overflow-x:clip]"
+      style={{ height: `${AREAS.length * VH_PER_AREA}vh` }}
+    >
       <div className="sticky top-0 flex h-screen items-center justify-center [perspective:1100px] [perspective-origin:50%_50%]">
         {AREAS.map((area, i) => (
           <FlyCard
@@ -198,7 +216,7 @@ function FlyCard({
           <motion.div
             key={k}
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)] border border-hairline bg-bg-surface/85 shadow-[0_30px_70px_-28px_rgba(0,0,0,0.75)]"
+            className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)] border border-hairline bg-bg-surface/85 shadow-[0_30px_70px_-28px_var(--shadow-strong)]"
             style={{ zIndex: -1 - k }}
             initial={false}
             animate={
@@ -239,7 +257,7 @@ function FlyCard({
 
 function AreaCard({ area }: { area: Area }) {
   return (
-    <div className="flex h-full flex-col rounded-[var(--radius-card)] border border-hairline bg-bg-surface/90 p-7 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.75)] backdrop-blur-sm sm:p-8">
+    <div className="flex h-full flex-col rounded-[var(--radius-card)] border border-hairline bg-bg-surface/90 p-7 shadow-[0_40px_90px_-30px_var(--shadow-strong)] backdrop-blur-sm sm:p-8">
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent-blue-text">
         Research area
       </p>

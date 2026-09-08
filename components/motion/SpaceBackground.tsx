@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "@/lib/reduced-motion";
+import { useTheme } from "@/lib/theme";
 
 const ACCENT = "14, 116, 188";
 const MAX_DPR = 1.5;
@@ -53,6 +54,10 @@ function prefersSaveData() {
 export function SpaceBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reduced = useReducedMotion();
+  // Only used to re-read `--particle-alpha` when the palette flips — the
+  // field is drawn to a canvas, so it can't inherit the token the way the
+  // rest of the site does.
+  const { theme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -60,6 +65,11 @@ export function SpaceBackground() {
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    const alphaScale =
+      parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue("--particle-alpha"),
+      ) || 1;
 
     let width = 0;
     let height = 0;
@@ -153,7 +163,7 @@ export function SpaceBackground() {
           const drawY = cy + (p.by - cy) * factor;
           const twinkle = 0.7 + 0.3 * Math.sin(now / 600 + p.phase);
 
-          ctx!.fillStyle = `rgba(${ACCENT}, ${layer.alpha * twinkle * life})`;
+          ctx!.fillStyle = `rgba(${ACCENT}, ${layer.alpha * twinkle * life * alphaScale})`;
           ctx!.beginPath();
           ctx!.arc(drawX, drawY, layer.size * (0.6 + d * 1.6), 0, Math.PI * 2);
           ctx!.fill();
@@ -185,7 +195,7 @@ export function SpaceBackground() {
       window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [reduced]);
+  }, [reduced, theme]);
 
   if (reduced) return null;
 
@@ -194,7 +204,7 @@ export function SpaceBackground() {
       <canvas ref={canvasRef} className="h-full w-full" />
       {/* Cheap depth cue: corners recede a touch darker, like a lit room
           rather than a flat print. */}
-      <div className="absolute inset-0 [background:radial-gradient(120%_90%_at_50%_20%,transparent,rgba(0,0,0,0.55))]" />
+      <div className="absolute inset-0 [background:radial-gradient(120%_90%_at_50%_20%,transparent,var(--vignette))]" />
     </div>
   );
 }

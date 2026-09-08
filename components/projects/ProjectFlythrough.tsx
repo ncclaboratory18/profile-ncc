@@ -277,7 +277,7 @@ function ProjectPanel({ project }: { project: Project }) {
   return (
     <Link
       href={`/projects/${project.id}`}
-      className="relative block overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface/95 shadow-[0_40px_80px_-32px_rgba(0,0,0,0.75)] backdrop-blur-sm transition-colors hover:border-accent-blue-border-hover"
+      className="relative block overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface/95 shadow-[0_40px_80px_-32px_var(--shadow-strong)] backdrop-blur-sm transition-colors hover:border-accent-blue-border-hover"
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-bg-surface-raised">
         {img && (

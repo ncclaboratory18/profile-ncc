@@ -15,7 +15,7 @@ const PANELS = [
   {
     href: "/research-team",
     label: "Research Team",
-    desc: "Active research tracks in security, forensics, and distributed systems.",
+    desc: "Active research tracks in steganography, botnet detection, network security, and digital forensics.",
     photo: splitPhotos.research,
     icon: ShieldCheck,
     mark: RESEARCH_MARK,
@@ -42,7 +42,7 @@ export function SplitNav() {
             // Always visible, just heavily dimmed at rest — hover lifts it
             // brighter and closer to full colour rather than revealing it
             // from pure black.
-            className="object-cover [filter:grayscale(0.7)_brightness(0.32)] transition-[filter] duration-300 ease-[var(--ease-premium)] group-hover:[filter:grayscale(0.15)_brightness(0.62)] group-focus-visible:[filter:grayscale(0.15)_brightness(0.62)]"
+            className="object-cover [filter:var(--photo-tile-filter)] transition-[filter] duration-300 ease-[var(--ease-premium)] group-hover:[filter:var(--photo-tile-filter-hover)] group-focus-visible:[filter:var(--photo-tile-filter-hover)]"
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/55 to-bg-primary/10 opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
 

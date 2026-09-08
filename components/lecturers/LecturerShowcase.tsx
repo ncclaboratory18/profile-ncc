@@ -59,7 +59,7 @@ function LecturerRow({
 
   const portrait = (
     <div
-      className={`lecturer-photo-frame relative z-20 mx-auto mb-6 aspect-[3/4] w-48 overflow-hidden rounded-[var(--radius-control)] border border-hairline-strong bg-bg-surface shadow-[0_24px_56px_-18px_rgba(0,0,0,0.75)] sm:w-52 lg:absolute lg:top-[-3.5rem] lg:mx-0 lg:mb-0 lg:w-72 ${
+      className={`lecturer-photo-frame relative z-20 mx-auto mb-6 aspect-[3/4] w-48 overflow-hidden rounded-[var(--radius-control)] border border-hairline-strong bg-bg-surface shadow-[0_24px_56px_-18px_var(--shadow-strong)] sm:w-52 lg:absolute lg:top-[-3.5rem] lg:mx-0 lg:mb-0 lg:w-72 ${
         onLeft
           ? "lg:right-[-3rem]"
           : "lg:left-[-3rem]"

@@ -7,6 +7,7 @@ import { PageTransition } from "@/components/motion/PageTransition";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { LoaderGate } from "@/components/motion/LoaderGate";
 import { SpaceBackground } from "@/components/motion/SpaceBackground";
+import { THEME_SCRIPT } from "@/lib/themeScript";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -39,9 +40,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      // The theme script writes `data-theme` onto this element before React
+      // hydrates; without this, that attribute reads as a server/client
+      // mismatch.
+      suppressHydrationWarning
       className={`${spaceGrotesk.variable} ${plexSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg-primary text-text-primary">
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-[var(--radius-control)] focus:bg-accent-blue focus:px-4 focus:py-2 focus:font-sans focus:text-sm focus:font-semibold focus:text-white"

@@ -33,7 +33,7 @@ export function HeroBackdrop({ src, alt }: { src: string; alt: string }) {
           fill
           priority
           sizes="100vw"
-          className="object-cover [filter:grayscale(0.55)_brightness(0.5)]"
+          className="object-cover [filter:var(--photo-backdrop-filter)]"
         />
       </motion.div>
 

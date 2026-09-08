@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Dark is the base theme — every token below is the dark value, and the
+   light theme further down only re-declares the ones that have to change.
+   `<html data-theme>` is stamped before first paint by the inline script in
+   `layout.tsx`, so there is never a flash of the wrong palette; nothing else
+   in the codebase needs to know which theme is active. */
 :root {
   color-scheme: dark;
 
@@ -25,11 +30,65 @@
   --hairline-strong: rgba(255, 255, 255, 0.16);
   --success: #2fb864;
 
+  /* Theme-dependent depth cues. A drop shadow tuned for a near-black canvas
+     turns into a dirty smudge on an off-white one, so both are tokens. */
+  --shadow-strong: rgba(0, 0, 0, 0.75);
+  --vignette: rgba(0, 0, 0, 0.55);
+  /* Hero/banner photography sits under text, so it is knocked back — but in
+     opposite directions: darkened against dark, lifted against light. */
+  --photo-backdrop-filter: grayscale(0.55) brightness(0.5);
+  /* Split-nav tiles: photography knocked right down at rest so the label
+     carries the tile, lifted toward colour on hover. Same reasoning as the
+     backdrop above — on a light canvas the resting state only needs to be
+     quiet, not nearly black. */
+  --photo-tile-filter: grayscale(0.7) brightness(0.32);
+  --photo-tile-filter-hover: grayscale(0.15) brightness(0.62);
+  /* Scales the starfield's opacity: blue points that read as atmosphere on
+     near-black would read as dirt on off-white. */
+  --particle-alpha: 1;
+
   --radius-control: 8px;
   --radius-card: 14px;
   --radius-chip: 999px;
 
   --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Light theme — the warm off-white editorial canvas from the Leclerc and
+   Theodorus references, not a stark #ffffff app background. The system is
+   unchanged: one accent, hierarchy from luminance steps and hairlines. The
+   ink opacities mirror the dark theme's white steps so every component keeps
+   the same relative hierarchy without knowing the theme exists.
+   `--accent-blue` stays the exact brand hex — 4.9:1 on white, so it still
+   passes AA as link text and needs no lighter/darker variant. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-primary: #f3f1ec;
+  --bg-surface: #ffffff;
+  --bg-surface-raised: #e7e3db;
+  --bg-surface-active: #d8d2c7;
+
+  --accent-blue: #0e74bc;
+  --accent-blue-hover: #0b5c96;
+  --accent-blue-border-hover: rgba(14, 116, 188, 0.45);
+  --accent-blue-ring: rgba(14, 116, 188, 0.35);
+  --accent-blue-text: #0e74bc;
+
+  --text-primary: #0b0f14;
+  --text-secondary: rgba(11, 15, 20, 0.72);
+  --text-tertiary: rgba(11, 15, 20, 0.5);
+
+  --hairline: rgba(11, 15, 20, 0.12);
+  --hairline-strong: rgba(11, 15, 20, 0.22);
+  --success: #1c8f4d;
+
+  --shadow-strong: rgba(11, 15, 20, 0.22);
+  --vignette: rgba(11, 15, 20, 0.08);
+  --photo-backdrop-filter: grayscale(0.35) brightness(0.78);
+  --photo-tile-filter: grayscale(0.65) brightness(0.82);
+  --photo-tile-filter-hover: grayscale(0.1) brightness(1);
+  --particle-alpha: 0.4;
 }
 
 @theme inline {
@@ -147,55 +206,158 @@ a, button, [role="button"], summary, label {
 
 /* v4 glow system — one accent color (--accent-blue) carries every glow. */
 
-/* Generation carousel (Swiper effect-coverflow) — restyle the library's
-   default chevron buttons into the site's hairline-circle language rather
-   than hand-building custom nav elements the installed Swiper React version
-   has no supported hook for. */
-.generation-carousel {
-  --swiper-navigation-size: 15px;
-  --swiper-navigation-color: currentColor;
-  --swiper-navigation-sides-offset: 2px;
-}
+/* ── Carousel arrows ─────────────────────────────────────────────────────
+   One design for both carousels: the Research Team ring renders its own
+   buttons with `.carousel-arrow`, and the Admins carousel gets the same rules
+   applied to the markup Swiper renders for itself (the installed Swiper React
+   version has no supported hook for supplying custom nav elements, so this
+   restyles rather than replaces them).
+
+   No button chrome at all — no circle, no plate, no border. Just the chevron,
+   which is the whole control. The box that remains is invisible and exists
+   only to keep a 44px pointer target around a 12px glyph.
+
+   The chevron is drawn in CSS (two borders on a rotated square) rather than
+   coming from an icon set, so both carousels render the identical mark:
+   Swiper's own glyph is an icon font this page does not load, and Phosphor's
+   caret is a different shape again. Swiper's `::after` is switched off below
+   and `::before` carries the drawn one on both. */
+.carousel-arrow,
 .generation-carousel .swiper-button-prev,
 .generation-carousel .swiper-button-next {
-  width: 46px;
-  height: 46px;
-  border-radius: 999px;
-  border: 1px solid var(--hairline-strong);
-  background: color-mix(in srgb, var(--bg-surface) 80%, transparent);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 10px 28px -12px rgba(0, 0, 0, 0.75);
+  width: 56px;
+  height: 56px;
+  border: 0;
+  background: none;
+  box-shadow: none;
   color: var(--text-secondary);
   transition:
     color 0.2s var(--ease-premium),
-    background-color 0.2s var(--ease-premium),
-    border-color 0.2s var(--ease-premium),
     transform 0.2s var(--ease-premium);
 }
-.generation-carousel .swiper-button-prev::after,
-.generation-carousel .swiper-button-next::after {
-  font-weight: 800;
+
+/* Both sets flank the carousel, vertically centred on it.
+
+   Centring is `top: 50%` plus a negative margin rather than a transform, on
+   purpose: the hover nudge below owns `transform`, and a translate-based
+   centring would be wiped out by it and drop the button half its height.
+   Swiper's own rule offsets by half the *glyph* size, which leaves its
+   buttons ~15px low once they are given a real box — this corrects that too. */
+.carousel-arrow,
+.generation-carousel .swiper-button-prev,
+.generation-carousel .swiper-button-next {
+  top: 50%;
+  margin-top: -28px;
 }
-.generation-carousel .swiper-button-prev:hover,
-.generation-carousel .swiper-button-next:hover {
-  color: #fff;
-  background: var(--accent-blue);
-  border-color: var(--accent-blue);
-  transform: scale(1.08);
+
+/* The ring's own buttons are plain <button>s — Swiper's already carry these. */
+.carousel-arrow {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
+
+.carousel-arrow--prev {
+  left: 0;
+}
+
+.carousel-arrow--next {
+  right: 0;
+}
+
+/* Swiper injects its own `<svg class="swiper-navigation-icon">` into each
+   button on init — client-side, so it is absent from the server HTML — and
+   sizes it at 100% of the button, mirroring the prev one with a 180° rotation
+   of its own. Left in place it renders *alongside* the drawn chevron below:
+   two arrows per button at different sizes, mirrored by different means. This
+   is what made the pair read as mismatched. */
+.generation-carousel .swiper-navigation-icon {
+  display: none;
+}
+
+/* The chevron itself: a square showing only two of its borders, turned 45°.
+
+   The two directions differ by rotation alone — no per-side margin or offset.
+   An earlier version nudged each one "back onto centre", which was the thing
+   that stopped them reading as a mirrored pair: the rotated glyph's bounding
+   box is already centred on the button, so any such nudge only breaks the
+   symmetry it was meant to fix.
+
+   The drop shadow is what keeps a bare mark legible where it overlays a card
+   or a bright patch of photography — there is no plate behind it to do that. */
+.carousel-arrow::before,
+.generation-carousel .swiper-button-prev::before,
+.generation-carousel .swiper-button-next::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border-style: solid;
+  border-color: currentColor;
+  border-width: 0 3px 3px 0;
+  filter: drop-shadow(0 2px 6px var(--shadow-strong));
+}
+
+.carousel-arrow--prev::before,
+.generation-carousel .swiper-button-prev::before {
+  transform: rotate(135deg);
+}
+
+.carousel-arrow--next::before,
+.generation-carousel .swiper-button-next::before {
+  transform: rotate(-45deg);
+}
+
+.carousel-arrow:hover:not(:disabled),
+.carousel-arrow:focus-visible,
+.generation-carousel .swiper-button-prev:not(.swiper-button-disabled):hover,
+.generation-carousel .swiper-button-next:not(.swiper-button-disabled):hover {
+  color: var(--accent-blue-text);
+}
+
+/* Nudged toward the edge it points at — mirrored, like the glyph. */
+.carousel-arrow--prev:hover:not(:disabled),
+.generation-carousel .swiper-button-prev:not(.swiper-button-disabled):hover {
+  transform: translateX(-5px);
+}
+
+.carousel-arrow--next:hover:not(:disabled),
+.generation-carousel .swiper-button-next:not(.swiper-button-disabled):hover {
+  transform: translateX(5px);
+}
+
+.carousel-arrow:active:not(:disabled),
 .generation-carousel .swiper-button-prev:active,
 .generation-carousel .swiper-button-next:active {
-  transform: scale(0.95);
+  transform: scale(0.88);
 }
+
+.carousel-arrow:disabled,
 .generation-carousel .swiper-button-disabled {
-  opacity: 0.35;
+  opacity: 0.3;
 }
+
+.generation-carousel {
+  --swiper-navigation-sides-offset: 2px;
+}
+
 @media (max-width: 640px) {
+  .carousel-arrow,
   .generation-carousel .swiper-button-prev,
   .generation-carousel .swiper-button-next {
-    width: 38px;
-    height: 38px;
+    width: 48px;
+    height: 48px;
+    margin-top: -24px;
+  }
+
+  .carousel-arrow::before,
+  .generation-carousel .swiper-button-prev::before,
+  .generation-carousel .swiper-button-next::before {
+    width: 15px;
+    height: 15px;
+    border-width: 0 2.5px 2.5px 0;
   }
 }
 
@@ -477,6 +639,182 @@ a, button, [role="button"], summary, label {
   /* Siblings recede gently while one row is active — enough to focus
      attention, not enough to make any bio hard to read. */
   .lecturer-list:has(.lecturer-row:hover) .lecturer-row:not(:hover) {
+    opacity: 0.6;
+  }
+}
+
+/* ── Research Team case-file cards ───────────────────────────────────────
+   Numbered case-file cards per `references/DESIGN.md`: the portrait rests
+   black-and-white and returns to colour only for the card being pointed at,
+   while its siblings recede — the same attention-funnelling rule the Home
+   spotlight and the lecturer rows use, so the three pages read as one system.
+
+   Gated behind `@media (hover: hover)`: on touch there is no hover gesture to
+   bring a desaturated card back, so touch gets every card at full strength. */
+.casefile {
+  transition:
+    opacity 400ms var(--ease-premium),
+    border-color 250ms var(--ease-premium),
+    transform 250ms var(--ease-premium);
+}
+
+.casefile-photo {
+  transition:
+    filter 500ms var(--ease-premium),
+    transform 600ms var(--ease-premium);
+}
+
+@media (hover: hover) {
+  .casefile-photo {
+    filter: grayscale(1) contrast(1.04);
+  }
+
+  .casefile:hover .casefile-photo,
+  .casefile:focus-visible .casefile-photo {
+    filter: grayscale(0);
+    transform: scale(1.05);
+  }
+
+  .casefile:hover,
+  .casefile:focus-visible {
+    transform: translateY(-4px);
+  }
+
+  .casefile-list:has(.casefile:hover) .casefile:not(:hover),
+  .casefile-list:has(.casefile:focus-visible) .casefile:not(:focus-visible) {
+    opacity: 0.5;
+  }
+}
+
+/* ── Research Team 3D ring ───────────────────────────────────────────────
+   Cards on the face of a cylinder (geometry in `lib/ring.ts`). The stage
+   carries the shared 3D space; each slide is rotated onto the arc and pushed
+   out along its own +Z, so the row curves away on both sides and the centre
+   card sits closer to the camera.
+
+   `backface-visibility: hidden` matters here: without it a card rotated past
+   90° shows through mirrored. Colour marks the front card rather than the
+   pointer, because on a curved arc the card under the cursor is often not the
+   one being read — this rule comes after `.casefile-photo`'s hover rules so
+   it wins the tie. */
+.ring-stage {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.ring-slide {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: opacity 450ms var(--ease-premium);
+}
+
+.ring-slide .casefile-photo {
+  filter: grayscale(1) contrast(1.04);
+}
+
+.ring-slide[data-front="true"] .casefile-photo {
+  filter: none;
+}
+
+.ring-slide:not([data-front="true"]) {
+  opacity: 0.62;
+}
+
+/* The arc's own hover lift would fight the rotation it is sitting inside. */
+.ring-slide .casefile:hover,
+.ring-slide .casefile:focus-visible {
+  transform: none;
+}
+
+/* No 3D at all under reduced motion — the ring is replaced by the flat grid
+   in `ResearchRing`, and this keeps any stray slide flat if it renders. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="allow"]) .ring-stage,
+  :root:not([data-motion="allow"]) .ring-slide {
+    transform: none !important;
+  }
+}
+:root[data-motion="reduce"] .ring-stage,
+:root[data-motion="reduce"] .ring-slide {
+  transform: none !important;
+}
+
+/* ── Research tracks (zigzag slide rows) ─────────────────────────────────
+   The Lecturers page's slide-in mechanism, scaled up for the Research Team's
+   "Our research" bars: each row starts pushed out toward its own side of the
+   page and slides into place as it crosses the viewport, reversing when it
+   leaves. `.is-visible` is toggled from `useInView` in `ResearchFocus`.
+
+   A deliberate twin of `.lecturer-row` rather than a shared class — these bars
+   travel further, and the lecturer rules also carry portrait and plate
+   geometry belonging to that page. The travel lives on `.track-row-inner`, not
+   on the observed <article>, so the box `useInView` watches never moves. */
+.track-list {
+  overflow-x: clip;
+}
+
+.track-row {
+  transition: opacity 450ms var(--ease-premium);
+}
+
+.track-row .track-row-inner {
+  --row-enter-x: -88px;
+  opacity: 0;
+  transform: translateX(var(--row-enter-x));
+  transition:
+    opacity 700ms var(--ease-premium),
+    transform 900ms var(--ease-premium);
+}
+
+.track-row--right .track-row-inner {
+  --row-enter-x: 88px;
+}
+
+.track-row.is-visible .track-row-inner {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.track-row .track-box {
+  transition:
+    border-color 450ms var(--ease-premium),
+    box-shadow 450ms var(--ease-premium);
+}
+
+.track-row .track-photo {
+  transition:
+    filter 600ms var(--ease-premium),
+    transform 700ms var(--ease-premium);
+}
+
+.track-row .track-underline {
+  transform: scaleX(0.4);
+  transform-origin: left;
+  transition: transform 500ms var(--ease-premium);
+}
+
+@media (hover: hover) {
+  .track-row .track-photo {
+    filter: grayscale(0.6) brightness(0.88);
+  }
+
+  .track-row:hover .track-photo {
+    filter: none;
+    transform: scale(1.04);
+  }
+
+  .track-row:hover .track-box {
+    border-color: var(--accent-blue-border-hover);
+    box-shadow: 0 0 44px -12px rgba(14, 116, 188, 0.45);
+  }
+
+  .track-row:hover .track-underline {
+    transform: scaleX(1);
+  }
+
+  /* Siblings recede gently while one row is active — enough to focus
+     attention, not enough to make any copy hard to read. */
+  .track-list:has(.track-row:hover) .track-row:not(:hover) {
     opacity: 0.6;
   }
 }

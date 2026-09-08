@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { A11y, Autoplay, EffectCoverflow, Navigation } from "swiper/modules";
+import { A11y, Autoplay, EffectCoverflow, Mousewheel, Navigation } from "swiper/modules";
 import { MemberCard } from "@/components/roster/MemberCard";
 import { loopCopies, CAROUSEL_BREAKPOINTS } from "@/lib/carouselLoop";
 import { useReducedMotion } from "@/lib/reduced-motion";
@@ -55,11 +55,17 @@ export function GenerationCarousel({ members }: { members: TeamMember[] }) {
       // A11y is not optional here: Swiper renders its nav arrows as plain
       // <div>s, so without this module they carry no role, label, or keyboard
       // handling.
-      modules={[A11y, Autoplay, EffectCoverflow, Navigation]}
+      modules={[A11y, Autoplay, EffectCoverflow, Mousewheel, Navigation]}
       a11y={{
         prevSlideMessage: "Previous member",
         nextSlideMessage: "Next member",
       }}
+      // `forceToAxis` is the whole point: the carousel is horizontal, so it
+      // answers a trackpad's sideways swipe (or shift+wheel) and ignores a
+      // plain vertical wheel, which keeps scrolling the page. Without it a
+      // looping carousel swallows the scroll and the page can never be got
+      // past with the pointer over it.
+      mousewheel={{ forceToAxis: true }}
       autoplay={
         reduce
           ? false

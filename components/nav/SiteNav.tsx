@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { List, X } from "@phosphor-icons/react/dist/ssr";
 import { NccMark } from "@/components/brand/NccMark";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { NAV_LINKS } from "@/lib/nav";
 import { isNavActive } from "@/lib/isNavActive";
 
@@ -63,6 +64,7 @@ export function SiteNav() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link
             href="/booking"
             className="hidden rounded-[var(--radius-chip)] bg-accent-blue px-4 py-2 font-sans text-sm font-semibold text-white transition-colors hover:bg-accent-blue-hover sm:inline-block"
