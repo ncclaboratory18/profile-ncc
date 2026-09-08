@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowDown } from "@phosphor-icons/react/dist/ssr";
 import { HeroBackdrop } from "./HeroBackdrop";
 import { RevealGroup, RevealItem } from "@/components/motion/Reveal";
 import { NccMark } from "@/components/brand/NccMark";
@@ -44,10 +43,6 @@ export function Hero() {
           >
             View Research
           </Link>
-          <span className="ml-1 hidden items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary sm:flex">
-            <ArrowDown size={13} weight="bold" />
-            Scroll
-          </span>
         </RevealItem>
       </RevealGroup>
     </section>

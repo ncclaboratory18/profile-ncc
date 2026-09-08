@@ -26,13 +26,18 @@
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-tertiary: rgba(255, 255, 255, 0.45);
 
-  --hairline: rgba(255, 255, 255, 0.08);
-  --hairline-strong: rgba(255, 255, 255, 0.16);
+  /* Rules are structure here, not decoration, so they are strong enough to
+     actually be seen. A 1px line at 8% reads as a soft edge on a card; at 24%
+     it reads as a drawn division, which is the whole point of the layout. */
+  --hairline: rgba(255, 255, 255, 0.24);
+  --hairline-strong: rgba(255, 255, 255, 0.46);
   --success: #2fb864;
 
-  /* Theme-dependent depth cues. A drop shadow tuned for a near-black canvas
-     turns into a dirty smudge on an off-white one, so both are tokens. */
-  --shadow-strong: rgba(0, 0, 0, 0.75);
+  /* Soft drop shadows are switched off wholesale rather than deleted call by
+     call: nothing on this site floats above anything else any more. The token
+     stays so the handful of `shadow-[...]` utilities resolve to nothing
+     instead of needing an edit each. */
+  --shadow-strong: transparent;
   --vignette: rgba(0, 0, 0, 0.55);
   /* Hero/banner photography sits under text, so it is knocked back — but in
      opposite directions: darkened against dark, lifted against light. */
@@ -47,9 +52,11 @@
      near-black would read as dirt on off-white. */
   --particle-alpha: 1;
 
-  --radius-control: 8px;
-  --radius-card: 14px;
-  --radius-chip: 999px;
+  /* Nothing is rounded. Kept as tokens because the whole codebase reaches for
+     them, so the shape of the site is one edit rather than several hundred. */
+  --radius-control: 0px;
+  --radius-card: 0px;
+  --radius-chip: 0px;
 
   --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -79,11 +86,11 @@
   --text-secondary: rgba(11, 15, 20, 0.72);
   --text-tertiary: rgba(11, 15, 20, 0.5);
 
-  --hairline: rgba(11, 15, 20, 0.12);
-  --hairline-strong: rgba(11, 15, 20, 0.22);
+  --hairline: rgba(11, 15, 20, 0.26);
+  --hairline-strong: rgba(11, 15, 20, 0.52);
   --success: #1c8f4d;
 
-  --shadow-strong: rgba(11, 15, 20, 0.22);
+  --shadow-strong: transparent;
   --vignette: rgba(11, 15, 20, 0.08);
   --photo-backdrop-filter: grayscale(0.35) brightness(0.78);
   --photo-tile-filter: grayscale(0.65) brightness(0.82);
@@ -297,7 +304,11 @@ a, button, [role="button"], summary, label {
   border-style: solid;
   border-color: currentColor;
   border-width: 0 3px 3px 0;
-  filter: drop-shadow(0 2px 6px var(--shadow-strong));
+  /* A hard offset in the page's own background colour, not a blur: it keeps a
+     plateless chevron legible over photography in either theme — the ink is
+     always the opposite of the canvas — and a soft glow would be the one
+     remaining thing on the site pretending to be lit. */
+  filter: drop-shadow(2px 2px 0 var(--bg-primary));
 }
 
 .carousel-arrow--prev::before,
@@ -361,31 +372,13 @@ a, button, [role="button"], summary, label {
   }
 }
 
-/* Cursor-following spotlight, tracked via --spot-x/--spot-y set from JS. */
-.card-spotlight {
-  background: radial-gradient(
-    220px circle at var(--spot-x, 50%) var(--spot-y, 50%),
-    rgba(14, 116, 188, 0.16),
-    transparent 70%
-  );
-}
-
-/* Persistent pulse reserved for the two "distinguished" cards (Prof. Tohari, koor lab). */
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 1px var(--accent-blue-border-hover), 0 0 24px 2px rgba(14, 116, 188, 0.25); }
-  50%      { box-shadow: 0 0 0 1px var(--accent-blue-border-hover), 0 0 40px 6px rgba(14, 116, 188, 0.45); }
-}
+/* Marks the two anchoring cards — Prof. Tohari, and each generation's koor
+   lab. Formerly a pulsing blue halo; now a hard inset accent rule, because a
+   glow is a soft light source and there are none of those left on this site.
+   It is also no longer animated: it marks a fixed fact about a person, and a
+   fact does not need to pulse to be true. */
 .glow-pulse {
-  animation: glow-pulse 2.6s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root:not([data-motion="allow"]) .glow-pulse {
-    animation: none !important;
-  }
-}
-:root[data-motion="reduce"] .glow-pulse {
-  animation: none !important;
+  box-shadow: inset 0 0 0 3px var(--accent-blue);
 }
 
 /* ── Glitch text (v5) ────────────────────────────────────────────────────
@@ -457,91 +450,68 @@ a, button, [role="button"], summary, label {
 
 
 
-/* ── Meet the Lab spotlight (v5) ─────────────────────────────────────────
-   Rows rest dimmed and desaturated; hovering or focusing one brings it to
-   full colour while its siblings recede further, so attention funnels to the
-   active row instead of merely favouring it.
+/* ── Meet the Lab: the pinned people sequence ────────────────────────────
+   The one bright stretch on a near-black site. `.lab-light` re-declares the
+   theme tokens on the panel itself, so every `text-text-primary` /
+   `border-hairline` utility inside resolves to light-theme ink without a
+   single component knowing which theme the rest of the page is in — and the
+   section reads the same whichever theme the visitor picked.
 
-   Both behaviours are gated behind `@media (hover: hover)`. On touch there is
-   no hover gesture to reveal a dimmed row, so rows simply render at full
-   brightness — the fallback the direction doc calls for explicitly. */
-.spotlight-row {
-  transition:
-    opacity 400ms var(--ease-premium),
-    filter 400ms var(--ease-premium),
-    transform 400ms var(--ease-premium);
+   Values are the light theme's, verbatim; if the inversion ever fights the
+   rest of the site too hard, the fallback is to lift `--bg-primary` a step
+   from near-black here instead and leave everything below untouched. */
+.lab-light {
+  color-scheme: light;
+
+  --bg-primary: #f3f1ec;
+  --bg-surface: #ffffff;
+  --bg-surface-raised: #e7e3db;
+  --bg-surface-active: #d8d2c7;
+
+  --accent-blue: #0e74bc;
+  --accent-blue-hover: #0b5c96;
+  --accent-blue-text: #0e74bc;
+
+  --text-primary: #0b0f14;
+  --text-secondary: rgba(11, 15, 20, 0.72);
+  --text-tertiary: rgba(11, 15, 20, 0.5);
+
+  --hairline: rgba(11, 15, 20, 0.26);
+  --hairline-strong: rgba(11, 15, 20, 0.52);
 }
 
-.spotlight-row .spotlight-photo {
-  transition:
-    filter 400ms var(--ease-premium),
-    transform 400ms var(--ease-premium);
+/* Blueprint ruling behind the people: barely visible, but it gives the
+   deliberately mismatched photograph sizes something to align to and keeps
+   the lab's engineering character on a page that has just gone bright. */
+.lab-blueprint {
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      rgba(11, 15, 20, 0.07) 0 1px,
+      transparent 1px 6.25vw
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(11, 15, 20, 0.07) 0 1px,
+      transparent 1px 8.33vh
+    );
 }
 
-@media (hover: hover) {
-  .spotlight-row {
-    opacity: 0.55;
-  }
+/* Photographs are never quite still. Compositor-only, and the global
+   reduced-motion rules above switch it off with everything else. */
+.lab-drift {
+  animation: lab-drift 17s var(--ease-premium) infinite alternate;
+}
 
-  .spotlight-row .spotlight-photo {
-    filter: grayscale(0.85) brightness(0.6);
+@keyframes lab-drift {
+  from {
+    transform: scale(1.06) translate3d(-1.2%, 0.8%, 0);
   }
-
-  .spotlight-row:hover,
-  .spotlight-row:focus-within {
-    opacity: 1;
-  }
-
-  .spotlight-row:hover .spotlight-photo,
-  .spotlight-row:focus-within .spotlight-photo {
-    filter: grayscale(0) brightness(1);
-    transform: scale(1.03);
-  }
-
-  /* Siblings actively recede while one row is active. */
-  .spotlight-list:has(.spotlight-row:hover) .spotlight-row:not(:hover),
-  .spotlight-list:has(.spotlight-row:focus-within) .spotlight-row:not(:focus-within) {
-    opacity: 0.25;
-  }
-
-  /* The accent underline under the active row's name. */
-  .spotlight-row .spotlight-underline {
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 400ms var(--ease-premium);
-  }
-
-  .spotlight-row:hover .spotlight-underline,
-  .spotlight-row:focus-within .spotlight-underline {
-    transform: scaleX(1);
+  to {
+    transform: scale(1.06) translate3d(1.2%, -0.8%, 0);
   }
 }
 
-/* Scroll-driven counterpart to the hover state above: whichever row sits in
-   the middle band of the viewport gets `.is-active` from JS (see
-   `MeetTheLab`) and lights up the same way a hovered row does — so the
-   active row reads clearly while scrolling, not only under a pointer.
-   Unlike the hover rules this isn't gated to `(hover: hover)`: touch
-   scrolling drives it too, which is strictly more legible than the flat
-   "everything full-bright" touch fallback it layers on top of. */
-.spotlight-row.is-active {
-  opacity: 1;
-}
-
-.spotlight-row.is-active .spotlight-photo {
-  filter: grayscale(0) brightness(1);
-  transform: scale(1.03);
-}
-
-.spotlight-row.is-active .spotlight-underline {
-  transform: scaleX(1);
-}
-
-@media (hover: hover) {
-  .spotlight-list:has(.spotlight-row.is-active) .spotlight-row:not(.is-active):not(:hover) {
-    opacity: 0.25;
-  }
-}
 
 /* ── Lecturer zigzag rows ────────────────────────────────────────────────
    Each lecturer is one box — photo plus copy — pinned hard to the left

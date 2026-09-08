@@ -1,0 +1,621 @@
+<title>Pinned Roster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600;700&display=swap">
+
+<style>
+  /* ── Tokens ────────────────────────────────────────────────────────────
+     Committed to one visual world on purpose: the brief pins a near-black
+     ground for the whole component, so there is no light theme to design —
+     but every colour is still painted explicitly, so the component holds
+     whatever ground it is dropped onto.
+
+     Palette and faces are the NCC Lab's own (Space Grotesk / IBM Plex, one
+     blue accent), so this reads as the same site rather than a stray mock. */
+  :root {
+    --ground: #07090d;
+    --mount: #10141d;
+    --rule: rgba(255, 255, 255, 0.14);
+    --accent: #0e74bc;
+    --accent-lit: #4aa6e4;
+    --ink: #ffffff;
+    --ink-muted: rgba(255, 255, 255, 0.62);
+    --ink-faint: rgba(255, 255, 255, 0.38);
+
+    --radius: 18px;
+    --radius-inner: 14px;
+
+    /* Non-overlap budget. A card of w × h rotated by θ grows its bounding
+       box by h·sinθ across and w·sinθ down; two neighbours each bleed half
+       of that toward one another, and the vertical nudge can close a further
+       2 × --dy-max. The gaps below are set to clear the worst case at every
+       breakpoint with room to spare, which is what lets the spread tilt
+       without a single card ever touching its neighbour.
+
+         4-col: track 267 × 356, θ 3.5°
+                across  2 × 10.6 = 21.2  <  44   (23px clear)
+                down    2 × 7.8 + 28 = 43.6  <  72   (28px clear)
+         2-col: track 530 × 707, θ 2.1°  (--rot-mul .6)
+                across  2 × 13.0 = 25.9  <  44   (18px clear)
+                down    2 × 9.7 + 28 = 47.4  <  72   (25px clear) */
+    --col-gap: 44px;
+    --row-gap: 72px;
+    --dy-max: 14px;
+    --rot-mul: 1;
+  }
+
+  *,
+  *::before,
+  *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .board {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+
+  /* ── Board heading ─────────────────────────────────────────────────── */
+  .board-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 56px;
+  }
+
+  .board-head h1 {
+    margin: 0;
+    font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .board-head p {
+    margin: 0;
+    max-width: 46ch;
+    color: var(--ink-muted);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .board-meta {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── The spread ────────────────────────────────────────────────────── */
+  .roster {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: var(--col-gap);
+    row-gap: var(--row-gap);
+    align-items: start;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .roster > li { min-width: 0; }
+
+  /* The tilt and the nudge live here, on the item — the grid track keeps the
+     card's untransformed footprint, which is what the gap budget above is
+     measured against. */
+  .card {
+    display: block;
+    position: relative;
+    width: var(--w, 100%);
+    margin-inline: auto;
+    border-radius: var(--radius);
+    background: var(--mount);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 18px 40px -18px rgba(0, 0, 0, 0.85);
+    transform:
+      translateY(var(--dy, 0px))
+      rotate(calc(var(--rot, 0deg) * var(--rot-mul)));
+    transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .card:hover,
+  .card:focus-visible {
+    transform:
+      translateY(calc(var(--dy, 0px) - 6px))
+      rotate(calc(var(--rot, 0deg) * var(--rot-mul) * 0.35));
+  }
+
+  .card:focus-visible {
+    outline: 2px solid var(--accent-lit);
+    outline-offset: 4px;
+  }
+
+  /* ── Photo card ────────────────────────────────────────────────────── */
+  .photo {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: var(--radius);
+  }
+
+  /* Placeholders are inline SVG monograms so the file is genuinely
+     self-contained — no network, nothing to block. Swap the `src` on any card
+     for a real photo (or a picsum URL) and nothing else changes. */
+  .photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.08);
+  }
+
+  /* One card keeps its colour, and it means something: it is the only person
+     here from the Research Team rather than the admin roster. */
+  .card--colour .photo img { filter: none; }
+
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(4, 6, 10, 0.94) 0%,
+      rgba(4, 6, 10, 0.72) 22%,
+      rgba(4, 6, 10, 0) 46%
+    );
+  }
+
+  .badge-row {
+    position: absolute;
+    inset: 12px 12px auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(4, 6, 10, 0.66);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pill svg { color: var(--accent-lit); }
+
+  .mark {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: none;
+    border-radius: 999px;
+    background: rgba(4, 6, 10, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: var(--accent-lit);
+  }
+
+  .caption {
+    position: absolute;
+    inset: auto 14px 14px;
+  }
+
+  .caption .name {
+    margin: 0;
+    font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+  }
+
+  .caption .role {
+    margin: 6px 0 0;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  /* ── Lead card: an ID badge, not a photograph ──────────────────────── */
+  .idcard {
+    grid-column: span 2;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    border: 1px solid var(--rule);
+    background:
+      radial-gradient(120% 80% at 12% 0%, rgba(14, 116, 188, 0.22), transparent 62%),
+      var(--mount);
+  }
+
+  .idcard .strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* Two offset copies of the name in the accent, one either side, showing
+     only where the solid top layer does not cover them — a channel split.
+     Static: it is a printed misregistration, not a loop. */
+  .glitch {
+    position: relative;
+    font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(46px, 8.5vw, 92px);
+    line-height: 0.9;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+  }
+
+  .glitch span {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .glitch .r { color: var(--accent); transform: translate(-3px, 2px); }
+  .glitch .c { color: var(--accent-lit); transform: translate(3px, -2px); opacity: 0.75; }
+  .glitch .top { position: relative; color: var(--ink); }
+
+  .idcard .body {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .portrait {
+    flex: none;
+    width: 104px;
+    height: 104px;
+    border-radius: var(--radius-inner);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--rule);
+    color: var(--accent-lit);
+  }
+
+  .idcard .blurb {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-muted);
+    max-width: 34ch;
+  }
+
+  .idfoot {
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .field dt {
+    margin: 0 0 4px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .field dd {
+    margin: 0;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .contacts {
+    display: flex;
+    gap: 8px;
+    color: var(--ink-muted);
+  }
+
+  .contacts a {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    color: inherit;
+    transition: color 200ms, border-color 200ms;
+  }
+
+  .contacts a:hover,
+  .contacts a:focus-visible { color: var(--accent-lit); border-color: var(--accent); }
+
+  /* ── Responsive: fewer columns, less tilt, then none ───────────────── */
+  @media (max-width: 1099px) {
+    :root { --rot-mul: 0.6; }
+    .roster { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 699px) {
+    :root { --rot-mul: 0; --dy-max: 0px; }
+    .roster { grid-template-columns: minmax(0, 1fr); row-gap: 28px; }
+    .card { --dy: 0px; --w: 100%; }
+    .idcard { grid-column: span 1; }
+    .board { padding: 40px 18px 64px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+    .card:hover, .card:focus-visible { transform: translateY(var(--dy, 0px)) rotate(calc(var(--rot, 0deg) * var(--rot-mul))); }
+  }
+</style>
+
+<div class="board">
+  <header class="board-head">
+    <div>
+      <h1>Admins, pinned to the board</h1>
+      <p>
+        Seven admins keeping the lab running, plus the coordinator's own card.
+        Everything here is laid out on a grid — the tilt is decoration, the
+        spacing is not.
+      </p>
+    </div>
+    <p class="board-meta">08 cards · gen 2023–2024</p>
+  </header>
+
+  <ul class="roster">
+    <!-- Lead: the coordinator, as an ID badge rather than a photograph. -->
+    <li>
+      <article class="card idcard" style="--rot: -1.6deg; --dy: -6px;">
+        <div class="strip">
+          <span>NCC Lab · Kartu Anggota</span>
+          <span>ITS / Informatika</span>
+        </div>
+
+        <p class="glitch">
+          <span class="r" aria-hidden="true">Danish</span>
+          <span class="c" aria-hidden="true">Danish</span>
+          <span class="top">Danish</span>
+        </p>
+
+        <div class="body">
+          <!-- Schematic portrait: a node with its links, which is what this
+               lab actually studies. -->
+          <svg class="portrait" viewBox="0 0 104 104" fill="none" aria-hidden="true">
+            <circle cx="52" cy="38" r="15" stroke="currentColor" stroke-width="2"></circle>
+            <path d="M27 82c0-14 11-23 25-23s25 9 25 23" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+            <circle cx="18" cy="24" r="3.5" fill="currentColor"></circle>
+            <circle cx="86" cy="24" r="3.5" fill="currentColor"></circle>
+            <circle cx="52" cy="94" r="3.5" fill="currentColor"></circle>
+            <path d="M18 24l19 8M86 24l-19 8M52 94v-8" stroke="currentColor" stroke-width="1.5" opacity=".55"></path>
+          </svg>
+
+          <p class="blurb">
+            Runs day-to-day lab operations and the onboarding track for every
+            incoming generation.
+          </p>
+        </div>
+
+        <dl class="idfoot">
+          <div class="field">
+            <dt>NRP</dt>
+            <dd>5025241036</dd>
+          </div>
+          <div class="field">
+            <dt>Jabatan</dt>
+            <dd>Koordinator</dd>
+          </div>
+          <div class="contacts">
+            <a href="mailto:ncclaboratory18@gmail.com" aria-label="Email Danish">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <path d="m2 7 10 6 10-6"></path>
+              </svg>
+            </a>
+            <a href="https://www.instagram.com/ncclab_its/" aria-label="Instagram @ncclab_its">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+                <circle cx="12" cy="12" r="4"></circle>
+                <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"></circle>
+              </svg>
+            </a>
+          </div>
+        </dl>
+      </article>
+    </li>
+
+    <li>
+      <a class="card" href="#" style="--rot: 2.4deg; --dy: 10px;">
+        <div class="photo">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232b3a55'/%3E%3Cstop offset='1' stop-color='%236d7f9c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='800' fill='url(%23g)'/%3E%3Ctext x='300' y='452' text-anchor='middle' font-family='sans-serif' font-size='300' font-weight='700' fill='rgba(255,255,255,0.20)'%3EK%3C/text%3E%3C/svg%3E" alt="Kayla">
+          <div class="scrim"></div>
+          <div class="badge-row">
+            <span class="pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg>
+              2023
+            </span>
+            <span class="mark" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z"></path></svg>
+            </span>
+          </div>
+          <div class="caption">
+            <p class="name">Kayla</p>
+            <p class="role">Admin</p>
+          </div>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a class="card" href="#" style="--rot: -3.1deg; --dy: -12px; --w: 95%;">
+        <div class="photo">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233a2f2a'/%3E%3Cstop offset='1' stop-color='%238a6f5c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='800' fill='url(%23g)'/%3E%3Ctext x='300' y='452' text-anchor='middle' font-family='sans-serif' font-size='300' font-weight='700' fill='rgba(255,255,255,0.20)'%3EF%3C/text%3E%3C/svg%3E" alt="Farrel">
+          <div class="scrim"></div>
+          <div class="badge-row">
+            <span class="pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg>
+              2023
+            </span>
+            <span class="mark" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z"></path></svg>
+            </span>
+          </div>
+          <div class="caption">
+            <p class="name">Farrel</p>
+            <p class="role">Admin</p>
+          </div>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a class="card" href="#" style="--rot: 1.4deg; --dy: 8px;">
+        <div class="photo">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232a3d3a'/%3E%3Cstop offset='1' stop-color='%236f9c8f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='800' fill='url(%23g)'/%3E%3Ctext x='300' y='452' text-anchor='middle' font-family='sans-serif' font-size='300' font-weight='700' fill='rgba(255,255,255,0.20)'%3EA%3C/text%3E%3C/svg%3E" alt="Arini">
+          <div class="scrim"></div>
+          <div class="badge-row">
+            <span class="pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg>
+              2023
+            </span>
+            <span class="mark" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z"></path></svg>
+            </span>
+          </div>
+          <div class="caption">
+            <p class="name">Arini</p>
+            <p class="role">Finance</p>
+          </div>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a class="card card--colour" href="#" style="--rot: -2.2deg; --dy: -8px;">
+        <div class="photo">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230e74bc'/%3E%3Cstop offset='1' stop-color='%234aa6e4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='800' fill='url(%23g)'/%3E%3Ctext x='300' y='452' text-anchor='middle' font-family='sans-serif' font-size='300' font-weight='700' fill='rgba(255,255,255,0.20)'%3ER%3C/text%3E%3C/svg%3E" alt="Raka">
+          <div class="scrim"></div>
+          <div class="badge-row">
+            <span class="pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg>
+              2023
+            </span>
+            <span class="mark" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z"></path></svg>
+            </span>
+          </div>
+          <div class="caption">
+            <p class="name">Raka</p>
+            <p class="role">Research Assistant</p>
+          </div>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a class="card" href="#" style="--rot: 3.2deg; --dy: 12px; --w: 96%;">
+        <div class="photo">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233b2f4a'/%3E%3Cstop offset='1' stop-color='%237d6a94'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='800' fill='url(%23g)'/%3E%3Ctext x='300' y='452' text-anchor='middle' font-family='sans-serif' font-size='300' font-weight='700' fill='rgba(255,255,255,0.20)'%3EY%3C/text%3E%3C/svg%3E" alt="Yusuf">
+          <div class="scrim"></div>
+          <div class="badge-row">
+            <span class="pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg>
+              2024
+            </span>
+            <span class="mark" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z"></path></svg>
+            </span>
+          </div>
+          <div class="caption">
+            <p class="name">Yusuf</p>
+            <p class="role">Admin</p>
+          </div>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a class="card" href="#" style="--rot: -1.8deg; --dy: -10px;">
+        <div class="photo">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234a3340'/%3E%3Cstop offset='1' stop-color='%239c7285'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='800' fill='url(%23g)'/%3E%3Ctext x='300' y='452' text-anchor='middle' font-family='sans-serif' font-size='300' font-weight='700' fill='rgba(255,255,255,0.20)'%3EM%3C/text%3E%3C/svg%3E" alt="Michelle">
+          <div class="scrim"></div>
+          <div class="badge-row">
+            <span class="pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg>
+              2024
+            </span>
+            <span class="mark" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z"></path></svg>
+            </span>
+          </div>
+          <div class="caption">
+            <p class="name">Michelle</p>
+            <p class="role">Admin</p>
+          </div>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a class="card" href="#" style="--rot: 2.8deg; --dy: 6px;">
+        <div class="photo">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232f3a2a'/%3E%3Cstop offset='1' stop-color='%2375886a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='800' fill='url(%23g)'/%3E%3Ctext x='300' y='452' text-anchor='middle' font-family='sans-serif' font-size='300' font-weight='700' fill='rgba(255,255,255,0.20)'%3EI%3C/text%3E%3C/svg%3E" alt="Ilham">
+          <div class="scrim"></div>
+          <div class="badge-row">
+            <span class="pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg>
+              2024
+            </span>
+            <span class="mark" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z"></path></svg>
+            </span>
+          </div>
+          <div class="caption">
+            <p class="name">Ilham</p>
+            <p class="role">Admin</p>
+          </div>
+        </div>
+      </a>
+    </li>
+  </ul>
+</div>

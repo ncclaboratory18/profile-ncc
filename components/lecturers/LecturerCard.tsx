@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useSpotlight } from "@/lib/useSpotlight";
 import type { Lecturer } from "@/lib/types";
 
 export function LecturerCard({
@@ -12,13 +11,11 @@ export function LecturerCard({
   /** "lead" = Prof. Tohari's larger card with a persistent glow. */
   variant?: "default" | "lead";
 }) {
-  const { spotRef, onPointerMove } = useSpotlight<HTMLDivElement>();
   const lead = variant === "lead";
 
   return (
     <div
-      onPointerMove={onPointerMove}
-      className={`group relative flex flex-col items-center overflow-hidden rounded-[var(--radius-card)] border bg-bg-surface text-center transition-[border-color] duration-200 ${
+      className={`group relative flex flex-col items-center overflow-hidden border text-center transition-[border-color] duration-200 ${
         lead
           ? "glow-pulse w-full max-w-sm border-accent-blue-border-hover p-9"
           : "w-full max-w-xs border-hairline p-6 hover:border-accent-blue-border-hover"
@@ -49,7 +46,7 @@ export function LecturerCard({
       </div>
 
       {lecturer.role && (
-        <span className="mt-4 rounded-[var(--radius-chip)] bg-bg-surface-raised px-2.5 py-1 font-mono text-[11px] font-medium text-text-secondary">
+        <span className="mt-4 border border-hairline px-2.5 py-1 font-mono text-[11px] font-medium text-text-secondary">
           {lecturer.role}
         </span>
       )}
@@ -63,11 +60,6 @@ export function LecturerCard({
         {lecturer.title}
       </p>
 
-      <div
-        ref={spotRef}
-        aria-hidden="true"
-        className="card-spotlight pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-      />
     </div>
   );
 }

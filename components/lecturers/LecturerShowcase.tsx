@@ -59,7 +59,7 @@ function LecturerRow({
 
   const portrait = (
     <div
-      className={`lecturer-photo-frame relative z-20 mx-auto mb-6 aspect-[3/4] w-48 overflow-hidden rounded-[var(--radius-control)] border border-hairline-strong bg-bg-surface shadow-[0_24px_56px_-18px_var(--shadow-strong)] sm:w-52 lg:absolute lg:top-[-3.5rem] lg:mx-0 lg:mb-0 lg:w-72 ${
+      className={`lecturer-photo-frame relative z-20 mx-auto mb-6 aspect-[3/4] w-48 overflow-hidden rounded-[var(--radius-control)] border border-hairline-strong bg-bg-surface-raised sm:w-52 lg:absolute lg:top-[-3.5rem] lg:mx-0 lg:mb-0 lg:w-72 ${
         onLeft
           ? "lg:right-[-3rem]"
           : "lg:left-[-3rem]"
@@ -89,7 +89,7 @@ function LecturerRow({
   const plate = (
     <Link
       href={`/lecturers/${lecturer.id}`}
-      className={`lecturer-box relative z-10 flex w-full flex-col justify-center rounded-[var(--radius-control)] border border-hairline bg-bg-surface/90 p-6 text-center sm:w-[46vw] sm:shrink-0 sm:p-7 lg:min-h-[22rem] lg:w-[52vw] lg:py-6 ${
+      className={`lecturer-box relative z-10 flex w-full flex-col justify-center rounded-[var(--radius-control)] border border-hairline p-6 text-center sm:w-[46vw] sm:shrink-0 sm:p-7 lg:min-h-[22rem] lg:w-[52vw] lg:py-6 ${
         onLeft
           ? "sm:ml-[calc(50%-50vw)] lg:pl-8 lg:pr-[19rem] lg:text-left"
           : "sm:mr-[calc(50%-50vw)] lg:pl-[19rem] lg:pr-8 lg:text-right"

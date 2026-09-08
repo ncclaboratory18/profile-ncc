@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, EnvelopeSimple, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
+import { EnvelopeSimple, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/motion/Reveal";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL, LAB_EMAIL } from "@/lib/gallery";
 
@@ -32,7 +32,6 @@ export function ClosingStatement() {
             >
               <InstagramLogo size={16} weight="bold" />
               {INSTAGRAM_HANDLE}
-              <ArrowUpRight size={14} weight="bold" className="text-text-tertiary" />
             </a>
             <a
               href={`mailto:${LAB_EMAIL}`}

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { InstagramLogo, ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
+import { InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
 import { socialPhotos, INSTAGRAM_URL } from "@/lib/gallery";
 
@@ -20,7 +20,6 @@ export function SocialGrid() {
             className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary transition-colors hover:text-accent-blue-text"
           >
             Follow
-            <ArrowUpRight size={14} weight="bold" />
           </a>
         </div>
       </Reveal>

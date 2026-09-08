@@ -8,6 +8,17 @@ import {
   CAROUSEL_BREAKPOINTS,
 } from "../lib/carouselLoop.ts";
 import {
+  FULL_CHAPTERS,
+  TITLE_END,
+  TOTAL_SCREENS,
+  arrivalAt,
+  counterAt,
+  labPeople,
+  phases,
+  railAt,
+  slots,
+} from "../lib/labPeople.ts";
+import {
   ringFrontScale,
   ringRadius,
   ringSlots,
@@ -129,7 +140,74 @@ for (let count = 1; count <= 20; count++) {
   }
 }
 
+// 4. Meet the Lab: the pinned people sequence. Two things have to hold or the
+//    section stops working as written — people must never leave a hole on
+//    screen between them, and no two neighbours may move the same way.
+for (let i = 0; i < slots.length; i++) {
+  const slot = slots[i];
+  assert.ok(slot.end > slot.start, `person ${i}: empty slot`);
+  if (i > 0) {
+    const prev = slots[i - 1];
+    assert.ok(
+      slot.start > prev.start,
+      `person ${i}: starts before the person before them`,
+    );
+    // Overlapping handoff: the outgoing person is still leaving as this one
+    // starts to arrive, so there is never an empty screen between two people.
+    assert.ok(
+      slot.start < prev.end,
+      `person ${i}: gap of ${slot.start - prev.end} screens before them`,
+    );
+  }
+}
+
+// The change of pace is the whole reason the section is in two movements: a
+// rapid pass must advance about a third of what a full chapter does.
+const chapterStep = slots[1].start - slots[0].start;
+const passStep = slots[FULL_CHAPTERS + 1].start - slots[FULL_CHAPTERS].start;
+const ratio = passStep / chapterStep;
+assert.ok(
+  ratio > 0.28 && ratio < 0.4,
+  `rapid passes advance ${ratio} of a chapter, wanted about a third`,
+);
+
+// Directions: never twice in a row, and never out the way you came in.
+labPeople.forEach((person, i) => {
+  assert.notEqual(
+    person.enter as string,
+    person.exit as string,
+    `${person.id}: leaves the way they arrived`,
+  );
+  if (i === 0) return;
+  const before = labPeople[i - 1];
+  assert.notEqual(person.enter, before.enter, `${person.id}: enters like the one before`);
+  assert.notEqual(person.exit, before.exit, `${person.id}: exits like the one before`);
+});
+
+// Phases stay in range across the whole scroll, in both directions, and the
+// last person never leaves.
+for (let step = 0; step <= 400; step++) {
+  const s = (step / 400) * TOTAL_SCREENS;
+  for (let i = 0; i < labPeople.length; i++) {
+    const { enter, exit } = phases(s, i);
+    assert.ok(enter >= 0 && enter <= 1, `s=${s} person ${i}: enter ${enter}`);
+    assert.ok(exit >= 0 && exit <= 1, `s=${s} person ${i}: exit ${exit}`);
+  }
+  assert.equal(phases(s, labPeople.length - 1).exit, 0, `s=${s}: the last person left`);
+
+  // The counter only ever rolls forward, and only as far as there are people.
+  const n = counterAt(s);
+  assert.ok(n >= 0 && n <= labPeople.length, `s=${s}: counter at ${n}`);
+}
+
+// The headline finishes travelling exactly as the first person arrives, and
+// the rail spans the people rather than the whole pin.
+assert.equal(TITLE_END, arrivalAt(0));
+assert.equal(railAt(0), 0);
+assert.equal(railAt(labPeople.length - 1), 1);
+
 console.log("rail fade offsets ok");
 console.log("carousel loop thresholds ok");
 console.log("shipped carousel breakpoints clear Swiper's loop guard");
 console.log("research ring geometry ok");
+console.log("people sequence: no gaps, no repeated directions, phases in range");

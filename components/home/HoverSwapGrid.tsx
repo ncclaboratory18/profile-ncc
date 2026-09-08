@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { MemberCard } from "@/components/roster/MemberCard";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
 import { admins, researchTeam } from "@/lib/data";
@@ -30,7 +29,6 @@ export function HoverSwapGrid() {
             className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary transition-colors hover:text-accent-blue-text"
           >
             Full roster
-            <ArrowUpRight size={14} weight="bold" />
           </Link>
         </div>
       </Reveal>

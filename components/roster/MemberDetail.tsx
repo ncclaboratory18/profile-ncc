@@ -62,8 +62,8 @@ export function MemberDetail({ member }: { member: TeamMember }) {
             </p>
           )}
 
-          <dl className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="rounded-[var(--radius-card)] border border-hairline bg-bg-surface p-4">
+          <dl className="mt-10 grid grid-cols-1 border-t border-hairline sm:grid-cols-2">
+            <div className="border-b border-hairline py-4 sm:odd:pr-6 sm:even:border-l sm:even:pl-6">
               <dt className="flex items-center gap-2 font-sans text-xs font-medium text-text-tertiary">
                 <GraduationCap size={16} className="text-accent-blue" />
                 Major
@@ -71,7 +71,7 @@ export function MemberDetail({ member }: { member: TeamMember }) {
               <dd className="mt-1 font-sans text-sm text-text-primary">{member.major}</dd>
             </div>
             {member.nrp && (
-              <div className="rounded-[var(--radius-card)] border border-hairline bg-bg-surface p-4">
+              <div className="border-b border-hairline py-4 sm:odd:pr-6 sm:even:border-l sm:even:pl-6">
                 <dt className="flex items-center gap-2 font-sans text-xs font-medium text-text-tertiary">
                   <IdentificationCard size={16} className="text-accent-blue" />
                   NRP
@@ -80,7 +80,7 @@ export function MemberDetail({ member }: { member: TeamMember }) {
               </div>
             )}
             {member.email && (
-              <div className="rounded-[var(--radius-card)] border border-hairline bg-bg-surface p-4">
+              <div className="border-b border-hairline py-4 sm:odd:pr-6 sm:even:border-l sm:even:pl-6">
                 <dt className="flex items-center gap-2 font-sans text-xs font-medium text-text-tertiary">
                   <EnvelopeSimple size={16} className="text-accent-blue" />
                   Email
@@ -91,7 +91,7 @@ export function MemberDetail({ member }: { member: TeamMember }) {
               </div>
             )}
             {member.instagram && (
-              <div className="rounded-[var(--radius-card)] border border-hairline bg-bg-surface p-4">
+              <div className="border-b border-hairline py-4 sm:odd:pr-6 sm:even:border-l sm:even:pl-6">
                 <dt className="flex items-center gap-2 font-sans text-xs font-medium text-text-tertiary">
                   <InstagramLogo size={16} className="text-accent-blue" />
                   Instagram

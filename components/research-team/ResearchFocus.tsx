@@ -59,16 +59,13 @@ const TRACKS = [
 
 export function ResearchFocus() {
   return (
-    <section className="pt-28">
+    <section className="pt-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-text-tertiary">
-            Our research
-          </p>
-          <h2 className="mt-3 max-w-[22ch] font-display text-3xl font-semibold leading-[1.1] text-text-primary sm:text-5xl">
+          <h2 className="max-w-[22ch] font-display text-3xl font-semibold leading-[1.1] text-text-primary sm:text-5xl">
             What the team is working on
           </h2>
-          <p className="mt-5 max-w-[62ch] font-sans text-base leading-relaxed text-text-secondary sm:text-lg">
+          <p className="mt-4 max-w-[62ch] font-sans text-base leading-relaxed text-text-secondary">
             Four tracks run inside the lab at any time. Each one is owned by
             research assistants and supervised by the Head of Laboratory, and
             feeds the papers and projects published elsewhere on this site.
@@ -81,7 +78,7 @@ export function ResearchFocus() {
           `.track-list` itself — deep enough in the tree that it never becomes
           the scroll container for the window, for Lenis, or for any sticky
           section elsewhere on the site. */}
-      <div className="track-list mt-16 flex flex-col gap-14 px-4 sm:px-6 lg:mt-20 lg:gap-24 lg:px-0">
+      <div className="track-list mt-10 flex flex-col gap-10 px-4 sm:px-6 lg:mt-14 lg:gap-16 lg:px-0">
         {TRACKS.map((track, i) => (
           <TrackRow key={track.title} track={track} onLeft={i % 2 === 0} />
         ))}
@@ -107,16 +104,12 @@ function TrackRow({
     >
       <div className={`track-row-inner ${onLeft ? "" : "lg:flex lg:justify-end"}`}>
         <div
-          className={`track-box relative flex w-full flex-col overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface lg:w-[78vw] lg:flex-row lg:items-stretch lg:rounded-none ${
-            onLeft
-              ? "lg:rounded-r-[var(--radius-card)]"
-              : "lg:rounded-l-[var(--radius-card)]"
-          }`}
+          className={`track-box relative flex w-full flex-col lg:w-[78vw] lg:flex-row lg:items-stretch`}
         >
           {/* Photo takes the bar's outer half — the side running off the page
               edge. Copy takes the inner half, nearest the page centre. */}
           <div
-            className={`relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-bg-surface-raised lg:aspect-auto lg:min-h-[32rem] lg:w-[40vw] ${
+            className={`relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-bg-surface-raised lg:aspect-auto lg:min-h-[26rem] lg:w-[40vw] ${
               onLeft ? "lg:order-1" : "lg:order-2"
             }`}
           >
@@ -130,21 +123,21 @@ function TrackRow({
           </div>
 
           <div
-            className={`flex flex-1 flex-col justify-center p-8 sm:p-10 lg:p-14 ${
-              onLeft ? "lg:order-2" : "lg:order-1"
+            className={`flex flex-1 flex-col justify-center border-t-2 border-hairline-strong pt-6 lg:border-t-0 lg:pt-0 ${
+              onLeft ? "lg:order-2 lg:pl-10" : "lg:order-1 lg:pr-10"
             }`}
           >
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent-blue-text">
               {track.tag}
             </p>
-            <h3 className="mt-3 font-display text-3xl font-semibold leading-tight text-text-primary sm:text-4xl lg:text-5xl">
+            <h3 className="mt-2 font-display text-3xl font-semibold leading-[1.02] tracking-tight text-text-primary sm:text-4xl lg:text-5xl">
               {track.title}
             </h3>
             <span
               aria-hidden="true"
-              className="track-underline mt-5 block h-px w-20 bg-accent-blue"
+              className="track-underline mt-4 block h-1 w-20 bg-accent-blue"
             />
-            <p className="mt-6 max-w-[46ch] font-sans text-base leading-relaxed text-text-secondary lg:text-lg">
+            <p className="mt-5 max-w-[46ch] font-sans text-base leading-relaxed text-text-secondary">
               {track.body}
             </p>
           </div>

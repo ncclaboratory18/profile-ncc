@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, ShieldCheck } from "@phosphor-icons/react/dist/ssr";
+import { ShieldCheck } from "@phosphor-icons/react/dist/ssr";
 import { HeroBackdrop } from "@/components/home/HeroBackdrop";
 import { GlitchText } from "@/components/motion/GlitchText";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
@@ -37,10 +37,10 @@ export default function ResearchTeamPage() {
   ];
 
   return (
-    <div className="pb-24 [overflow-x:clip]">
+    <div className="pb-16 [overflow-x:clip]">
       {/* Same full-bleed photo + particle + scrim treatment as Home and the
           other roster pages, so this page reads as the same site (v4 §4). */}
-      <section className="relative flex min-h-[62dvh] items-end overflow-hidden pb-16 pt-24">
+      <section className="relative flex min-h-[56dvh] items-end overflow-hidden pb-12 pt-20">
         <HeroBackdrop src={heroPhoto.src} alt={heroPhoto.alt} />
 
         <RevealGroup className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -53,14 +53,14 @@ export default function ResearchTeamPage() {
               priority
               className="h-14 w-14 rounded-[var(--radius-control)]"
             />
-            <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-chip)] border border-hairline-strong bg-bg-primary/50 px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-text-secondary backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1.5 border-2 border-hairline-strong bg-bg-primary/50 px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-text-secondary backdrop-blur-sm">
               <ShieldCheck size={13} weight="bold" className="text-accent-blue" />
               Sub-team of NCC Lab
             </span>
           </RevealItem>
 
           <RevealItem>
-            <h1 className="mt-6 max-w-4xl font-display text-5xl font-semibold leading-[0.98] tracking-tight text-text-primary sm:text-7xl">
+            <h1 className="mt-5 max-w-4xl font-display text-5xl font-semibold leading-[0.98] tracking-tight text-text-primary sm:text-7xl">
               <GlitchText text="Research" trigger="once" as="span" />
               <br />
               <GlitchText text="Team" trigger="once" as="span" />
@@ -68,7 +68,7 @@ export default function ResearchTeamPage() {
           </RevealItem>
 
           <RevealItem>
-            <p className="mt-6 max-w-[52ch] font-sans text-base leading-relaxed text-text-secondary sm:text-lg">
+            <p className="mt-5 max-w-[52ch] font-sans text-base leading-relaxed text-text-secondary sm:text-lg">
               The lab&apos;s research arm: assistants running their own tracks
               in steganography, botnet detection, network security, and digital
               forensics, supervised by the Head of Laboratory.
@@ -77,7 +77,7 @@ export default function ResearchTeamPage() {
 
           {/* Telemetry strip — the mono status line from the lixyon reference,
               carrying real counts rather than decorative numbers. */}
-          <RevealItem className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
+          <RevealItem className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
             {telemetry.map((entry, i) => (
               <span key={entry} className="flex items-center gap-4">
                 {i > 0 && <span aria-hidden="true" className="h-3 w-px bg-hairline-strong" />}
@@ -89,13 +89,8 @@ export default function ResearchTeamPage() {
       </section>
 
       {head && (
-        <div className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 pt-14 sm:px-6 lg:px-8">
           <Reveal>
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-text-tertiary">
-              Supervision
-            </p>
-          </Reveal>
-          <Reveal delay={0.1} className="mt-5">
             <ResearchLead
               lecturer={head}
               stats={[
@@ -108,7 +103,7 @@ export default function ResearchTeamPage() {
         </div>
       )}
 
-      <section className="mx-auto max-w-7xl px-4 pt-24 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
         {researchTeam.length === 0 ? (
           <p className="text-center font-sans text-sm text-text-tertiary">
             No research team members recorded yet.
@@ -116,7 +111,7 @@ export default function ResearchTeamPage() {
         ) : (
           <>
             <Reveal>
-              <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-hairline pb-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b-2 border-hairline-strong pb-3">
                 <h2 className="font-display text-2xl font-semibold text-text-primary sm:text-3xl">
                   Research assistants
                 </h2>
@@ -126,7 +121,7 @@ export default function ResearchTeamPage() {
               </div>
             </Reveal>
 
-            <Reveal delay={0.1} className="mt-12">
+            <Reveal delay={0.1} className="mt-8">
               <ResearchRing members={researchTeam} />
             </Reveal>
           </>
@@ -137,8 +132,8 @@ export default function ResearchTeamPage() {
 
       {/* Closing beat: the oversized wordmark with a ghosted duplicate behind
           it, straight from `references/DESIGN.md`. */}
-      <section className="mt-28 border-t border-hairline">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <section className="mt-16 border-t-2 border-hairline-strong">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
           <Reveal>
             <p className="relative select-none font-display text-[16vw] font-semibold leading-[0.82] tracking-tight text-text-primary sm:text-[13vw]">
               <span
@@ -150,20 +145,18 @@ export default function ResearchTeamPage() {
               <span className="relative">Research</span>
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/research"
-                className="inline-flex items-center gap-2 rounded-[var(--radius-chip)] bg-accent-blue px-6 py-3 font-sans text-sm font-semibold text-white transition-colors duration-200 hover:bg-accent-blue-hover"
+                className="inline-flex items-center bg-accent-blue px-6 py-3 font-mono text-sm font-bold uppercase tracking-[0.1em] text-white transition-colors duration-200 hover:bg-accent-blue-hover"
               >
                 Published work
-                <ArrowUpRight size={15} weight="bold" />
               </Link>
               <Link
                 href="/projects"
-                className="inline-flex items-center gap-2 rounded-[var(--radius-chip)] border border-hairline-strong px-6 py-3 font-sans text-sm font-semibold text-text-primary transition-colors duration-200 hover:border-accent-blue-border-hover"
+                className="inline-flex items-center border-2 border-hairline-strong px-6 py-3 font-mono text-sm font-bold uppercase tracking-[0.1em] text-text-primary transition-colors duration-200 hover:border-accent-blue"
               >
                 Lab projects
-                <ArrowUpRight size={15} weight="bold" className="text-text-tertiary" />
               </Link>
             </div>
           </Reveal>

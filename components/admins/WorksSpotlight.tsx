@@ -4,7 +4,6 @@ import { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useInView } from "motion/react";
-import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/motion/Reveal";
 import type { Project } from "@/lib/types";
 
@@ -86,7 +85,6 @@ function WorkRow({ project, index }: { project: Project; index: number }) {
 
           <span className="mt-5 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary transition-colors group-hover:text-accent-blue-text">
             View project
-            <ArrowUpRight size={14} weight="bold" />
           </span>
         </div>
       </Link>

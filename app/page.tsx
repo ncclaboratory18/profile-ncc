@@ -1,5 +1,6 @@
 import { Hero } from "@/components/home/Hero";
-import { PhotoRail } from "@/components/home/PhotoRail";
+import { LabStatement } from "@/components/home/LabStatement";
+import { Milestones } from "@/components/home/Milestones";
 import { MeetTheLab } from "@/components/home/MeetTheLab";
 import { WhatWeDo } from "@/components/home/WhatWeDo";
 import { SplitNav } from "@/components/home/SplitNav";
@@ -12,7 +13,8 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <PhotoRail />
+      <LabStatement />
+      <Milestones />
       <MeetTheLab />
       <WhatWeDo />
       <SplitNav />

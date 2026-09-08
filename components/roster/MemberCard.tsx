@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ShieldCheck, UsersThree } from "@phosphor-icons/react/dist/ssr";
-import { useSpotlight } from "@/lib/useSpotlight";
 import { GlitchText } from "@/components/motion/GlitchText";
 import { RESEARCH_MARK } from "@/lib/gallery";
 import type { TeamMember } from "@/lib/types";
@@ -21,12 +20,10 @@ export function MemberCard({
   const href =
     member.team === "admin" ? `/admins/${member.id}` : `/research-team/${member.id}`;
   const TeamIcon = member.team === "admin" ? UsersThree : ShieldCheck;
-  const { spotRef, onPointerMove } = useSpotlight<HTMLDivElement>();
 
   return (
     <Link
       href={href}
-      onPointerMove={onPointerMove}
       className={`group glitch-trigger relative block shrink-0 overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-bg-surface transition-[transform,border-color] duration-200 ease-[var(--ease-premium)] hover:scale-[1.02] hover:border-accent-blue-border-hover ${
         glow ? "glow-pulse border-accent-blue-border-hover" : ""
       } ${
@@ -93,11 +90,6 @@ export function MemberCard({
           </>
         )}
 
-        <div
-          ref={spotRef}
-          aria-hidden="true"
-          className="card-spotlight pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        />
       </div>
 
       {variant === "expanded" && (

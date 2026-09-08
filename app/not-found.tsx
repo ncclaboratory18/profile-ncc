@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { GlitchText } from "@/components/motion/GlitchText";
 import { NAV_LINKS } from "@/lib/nav";
 
@@ -32,7 +31,6 @@ export default function NotFound() {
             className="inline-flex items-center gap-1 font-sans text-sm text-text-secondary transition-colors hover:text-accent-blue-text"
           >
             {link.label}
-            <ArrowUpRight size={14} weight="bold" />
           </Link>
         ))}
       </nav>
