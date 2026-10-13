@@ -8,16 +8,17 @@ import {
   CAROUSEL_BREAKPOINTS,
 } from "../lib/carouselLoop.ts";
 import {
-  FULL_CHAPTERS,
-  TITLE_END,
-  TOTAL_SCREENS,
-  arrivalAt,
-  counterAt,
+  ASSEMBLE_REACH,
+  EASINGS,
+  LAB_CONFIG,
+  assembleOffset,
+  clusterPx,
   labPeople,
-  phases,
-  railAt,
-  slots,
+  layoutAreas,
+  layoutFor,
+  membersPath,
 } from "../lib/labPeople.ts";
+import { memberAt, scalePoints, toPx } from "../lib/labPath.ts";
 import {
   ringFrontScale,
   ringRadius,
@@ -140,74 +141,185 @@ for (let count = 1; count <= 20; count++) {
   }
 }
 
-// 4. Meet the Lab: the pinned people sequence. Two things have to hold or the
-//    section stops working as written — people must never leave a hole on
-//    screen between them, and no two neighbours may move the same way.
-for (let i = 0; i < slots.length; i++) {
-  const slot = slots[i];
-  assert.ok(slot.end > slot.start, `person ${i}: empty slot`);
-  if (i > 0) {
-    const prev = slots[i - 1];
-    assert.ok(
-      slot.start > prev.start,
-      `person ${i}: starts before the person before them`,
-    );
-    // Overlapping handoff: the outgoing person is still leaving as this one
-    // starts to arrive, so there is never an empty screen between two people.
-    assert.ok(
-      slot.start < prev.end,
-      `person ${i}: gap of ${slot.start - prev.end} screens before them`,
-    );
+// 5. Meet the Lab: a camera travelling a smooth curve through a 2D canvas,
+//    past one compact cluster per member. The curve has to pass through its
+//    (scaled) waypoints with no sharp corners, keep changing direction, give
+//    every member the same length of path, and keep every two clusters at
+//    least `clusterGap` of empty canvas apart — with the gap knob, not luck,
+//    deciding the spacing.
+assert.ok(LAB_CONFIG.cluster.w <= 90 && LAB_CONFIG.cluster.h <= 80, "a cluster no longer fits one screen");
+assert.ok(LAB_CONFIG.mobileCluster.maxH <= 80, "phone clusters may not fit one screen");
+for (const [label, waypoints, w, h, desktop] of [
+  ["desktop 1440", LAB_CONFIG.waypoints, 1440, 900, true],
+  ["desktop 1280", LAB_CONFIG.waypoints, 1280, 720, true],
+  ["desktop 1920", LAB_CONFIG.waypoints, 1920, 1080, true],
+  ["mobile", LAB_CONFIG.mobileWaypoints, 390, 844, false],
+] as const) {
+  const { path, anchors, scale } = membersPath(desktop, w, h);
+  const pts = scalePoints(toPx(waypoints, w, h), scale);
+  const n = labPeople.length;
+  const L = path.length;
+  const seg = L / n;
+  const close = (a: { x: number; y: number }, b: { x: number; y: number }, tol: number) =>
+    Math.hypot(a.x - b.x, a.y - b.y) <= tol;
+
+  assert.ok(scale >= 1, `${label}: path shrunk below its waypoints`);
+
+  // Starts and ends exactly on the first and last waypoint.
+  assert.ok(close(path.pointAt(0), pts[0], 1e-6), `${label}: does not start on the first waypoint`);
+  assert.ok(close(path.pointAt(L), pts[pts.length - 1], 1e-6), `${label}: does not end on the last`);
+
+  // Passes through every waypoint (within a sampling step).
+  for (const [i, p] of pts.entries()) {
+    let best = Infinity;
+    for (let l = 0; l <= L; l += 2) {
+      const q = path.pointAt(l);
+      best = Math.min(best, Math.hypot(q.x - p.x, q.y - p.y));
+    }
+    assert.ok(best < 4, `${label}: misses waypoint ${i} by ${best.toFixed(1)}px`);
+  }
+
+  // Smooth: no corner sharper than a few degrees between 4px steps, and the
+  // camera never stops (the arc-length table is strictly increasing).
+  let prevAng: number | null = null;
+  let maxTurn = 0;
+  let signChanges = 0;
+  let lastSign = 0;
+  for (let l = 4; l <= L; l += 4) {
+    const p = path.pointAt(l - 4);
+    const q = path.pointAt(l);
+    const step = Math.hypot(q.x - p.x, q.y - p.y);
+    assert.ok(step > 3.5, `${label}: camera stalls at ${l.toFixed(0)}px (moved ${step.toFixed(2)}px in 4)`);
+    const ang = Math.atan2(q.y - p.y, q.x - p.x);
+    if (prevAng !== null) {
+      let d = Math.abs(ang - prevAng);
+      if (d > Math.PI) d = 2 * Math.PI - d;
+      maxTurn = Math.max(maxTurn, (d * 180) / Math.PI);
+    }
+    prevAng = ang;
+    const dy = q.y - p.y;
+    const sign = Math.abs(dy) < 0.05 ? 0 : Math.sign(dy);
+    if (sign && sign !== lastSign) {
+      if (lastSign) signChanges++;
+      lastSign = sign;
+    }
+  }
+  assert.ok(maxTurn < 8, `${label}: a corner turns ${maxTurn.toFixed(1)}° in 4px`);
+
+  if (desktop) {
+    // Never one direction for long: the vertical heading flips back and
+    // forth, and no stretch one member long is flat (horizontal only).
+    assert.ok(signChanges >= Math.floor(n / 2), `${label}: only ${signChanges} up/down changes`);
+    for (let l = 0; l + seg <= L; l += seg / 8) {
+      let lo = Infinity;
+      let hi = -Infinity;
+      for (let k = 0; k <= 32; k++) {
+        const y = path.pointAt(l + (seg * k) / 32).y;
+        lo = Math.min(lo, y);
+        hi = Math.max(hi, y);
+      }
+      assert.ok(
+        hi - lo > 0.1 * h,
+        `${label}: flat for a whole member from ${l.toFixed(0)}px (${(((hi - lo) / h) * 100).toFixed(1)}vh of rise)`,
+      );
+    }
+  }
+
+  // Equal treatment: anchors are a constant distance apart along the path.
+  for (let i = 0; i < n; i++) {
+    assert.ok(close(anchors[i], path.pointAt((i + 0.5) * seg), 1e-6), `${label}: anchor ${i} misplaced`);
+  }
+
+  // Clusters apart: for every two members, the empty canvas between their
+  // clusters — after the worst parallax drift while both are on screen — is
+  // at least `clusterGap` on one axis. And the closest pair sits right at
+  // the gap, so the knob is what sets the spacing.
+  const box = clusterPx(desktop, w, h);
+  const keep = 1 - 2 * LAB_CONFIG.parallax;
+  let tightest = Infinity;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const gx = ((Math.abs(anchors[j].x - anchors[i].x) * keep - box.w) / w) * 100;
+      const gy = ((Math.abs(anchors[j].y - anchors[i].y) * keep - box.h) / h) * 100;
+      const slack = Math.max(gx - LAB_CONFIG.clusterGap.x, gy - LAB_CONFIG.clusterGap.y);
+      assert.ok(slack >= -0.01, `${label}: members ${i + 1} and ${j + 1} only ${gx.toFixed(1)}vw / ${gy.toFixed(1)}vh apart`);
+      tightest = Math.min(tightest, slack);
+    }
+  }
+  assert.ok(tightest < 1, `${label}: closest clusters ${tightest.toFixed(1)} past the gap; the knob is not in charge`);
+
+  // The counter: 0..n-1, monotone along the path, and exactly i at anchor i.
+  let prev = -1;
+  for (let l = 0; l <= L; l += L / 400) {
+    const c = memberAt(l, L, n);
+    assert.ok(c >= 0 && c <= n - 1, `${label}: counter at ${c}`);
+    assert.ok(c >= prev, `${label}: counter runs backwards`);
+    prev = c;
+  }
+  for (let i = 0; i < n; i++) {
+    assert.ok(Math.abs(memberAt((i + 0.5) * seg, L, n) - i) < 1e-9, `${label}: counter off at member ${i}`);
   }
 }
 
-// The change of pace is the whole reason the section is in two movements: a
-// rapid pass must advance about a third of what a full chapter does.
-const chapterStep = slots[1].start - slots[0].start;
-const passStep = slots[FULL_CHAPTERS + 1].start - slots[FULL_CHAPTERS].start;
-const ratio = passStep / chapterStep;
-assert.ok(
-  ratio > 0.28 && ratio < 0.4,
-  `rapid passes advance ${ratio} of a chapter, wanted about a third`,
-);
-
-// Directions: never twice in a row, and never out the way you came in.
-labPeople.forEach((person, i) => {
-  assert.notEqual(
-    person.enter as string,
-    person.exit as string,
-    `${person.id}: leaves the way they arrived`,
-  );
-  if (i === 0) return;
-  const before = labPeople[i - 1];
-  assert.notEqual(person.enter, before.enter, `${person.id}: enters like the one before`);
-  assert.notEqual(person.exit, before.exit, `${person.id}: exits like the one before`);
-});
-
-// Phases stay in range across the whole scroll, in both directions, and the
-// last person never leaves.
-for (let step = 0; step <= 400; step++) {
-  const s = (step / 400) * TOTAL_SCREENS;
-  for (let i = 0; i < labPeople.length; i++) {
-    const { enter, exit } = phases(s, i);
-    assert.ok(enter >= 0 && enter <= 1, `s=${s} person ${i}: enter ${enter}`);
-    assert.ok(exit >= 0 && exit <= 1, `s=${s} person ${i}: exit ${exit}`);
+// Cluster layouts: every arrangement places all five parts exactly once, each
+// as a rectangle of whole cells in a grid of the declared size; mirrored
+// rounds are true mirror images; and neighbours never share an arrangement.
+const PARTS = ["photo", "accent", "text", "detail", "card"] as const;
+for (let i = 0; i < labPeople.length; i++) {
+  const { columns, rows, areas } = layoutAreas(i);
+  assert.equal(areas.length, rows.length, `member ${i + 1}: rows and areas disagree`);
+  for (const row of areas) assert.equal(row.length, columns.length, `member ${i + 1}: a ragged row`);
+  for (const part of PARTS) {
+    const cells = areas.flatMap((row, r) => row.flatMap((p, c) => (p === part ? [[r, c]] : [])));
+    assert.ok(cells.length, `member ${i + 1}: no ${part}`);
+    const r0 = Math.min(...cells.map(([r]) => r));
+    const r1 = Math.max(...cells.map(([r]) => r));
+    const c0 = Math.min(...cells.map(([, c]) => c));
+    const c1 = Math.max(...cells.map(([, c]) => c));
+    assert.equal(cells.length, (r1 - r0 + 1) * (c1 - c0 + 1), `member ${i + 1}: ${part} is not a rectangle`);
   }
-  assert.equal(phases(s, labPeople.length - 1).exit, 0, `s=${s}: the last person left`);
-
-  // The counter only ever rolls forward, and only as far as there are people.
-  const n = counterAt(s);
-  assert.ok(n >= 0 && n <= labPeople.length, `s=${s}: counter at ${n}`);
+  if (i > 0) assert.notDeepEqual(layoutAreas(i).areas, layoutAreas(i - 1).areas, `members ${i} and ${i + 1} look alike`);
 }
+const n0 = LAB_CONFIG.layouts.length;
+assert.deepEqual(layoutAreas(n0).areas, LAB_CONFIG.layouts[0].areas.map((row) => [...row].reverse()));
+assert.deepEqual(layoutAreas(n0).columns, [...LAB_CONFIG.layouts[0].columns].reverse());
+assert.match(layoutFor(0).areas, /^"[a-z ]+"( "[a-z ]+")*$/);
 
-// The headline finishes travelling exactly as the first person arrives, and
-// the rail spans the people rather than the whole pin.
-assert.equal(TITLE_END, arrivalAt(0));
-assert.equal(railAt(0), 0);
-assert.equal(railAt(labPeople.length - 1), 1);
+// Assemble / disassemble: the parts come together exactly on the anchor,
+// spread the same either side of it, never jump back while moving away, and
+// are fully apart by the halfway point to the next member — by a small,
+// bounded amount, in a fixed stagger.
+for (const [name, ease] of Object.entries(EASINGS)) {
+  assert.ok(Math.abs(ease(0)) < 1e-12 && Math.abs(ease(1) - 1) < 1e-12, `easing ${name}: not 0→0, 1→1`);
+  for (let t = 0.01; t <= 1; t += 0.01) assert.ok(ease(t) >= ease(t - 0.01) - 1e-12, `easing ${name}: runs backwards`);
+}
+const A = LAB_CONFIG.assemble;
+assert.ok(A.easing in EASINGS, `assemble: unknown easing ${A.easing}`);
+assert.ok(A.maxOffset >= 60 && A.maxOffset <= 100, "assemble: desktop spread outside 60–100px");
+assert.ok(A.mobileMaxOffset >= 30 && A.mobileMaxOffset <= 40, "assemble: phone spread outside 30–40px");
+assert.ok(ASSEMBLE_REACH <= 0.5, "assemble: a member is still coming together past the halfway point");
+assert.deepEqual(Object.keys(A.stagger).sort(), ["accent", "card", "detail", "label", "photo"]);
+for (const [kind, { amount, timing }] of Object.entries(A.stagger) as [keyof typeof A.stagger, { amount: number; timing: number }][]) {
+  assert.ok(amount >= 0.8 && amount <= 1.2, `assemble: ${kind} amount ${amount} outside 0.8–1.2`);
+  assert.ok(timing > 0, `assemble: ${kind} timing must be positive`);
+  for (const desktop of [true, false]) {
+    const max = (desktop ? A.maxOffset : A.mobileMaxOffset) * amount;
+    assert.equal(assembleOffset(0, kind, desktop), 0, `assemble: ${kind} not together on the anchor`);
+    assert.ok(Math.abs(assembleOffset(0.5, kind, desktop) - max) < 1e-9, `assemble: ${kind} not fully apart by halfway`);
+    let prev = 0;
+    for (let d = 0; d <= 1; d += 0.01) {
+      const o = assembleOffset(d, kind, desktop);
+      assert.ok(Math.abs(o - assembleOffset(-d, kind, desktop)) < 1e-9, `assemble: ${kind} lopsided`);
+      assert.ok(o >= prev - 1e-9 && o <= max + 1e-9, `assemble: ${kind} jumps at d=${d.toFixed(2)}`);
+      prev = o;
+    }
+  }
+}
 
 console.log("rail fade offsets ok");
 console.log("carousel loop thresholds ok");
 console.log("shipped carousel breakpoints clear Swiper's loop guard");
 console.log("research ring geometry ok");
-console.log("people sequence: no gaps, no repeated directions, phases in range");
+console.log("people path: smooth, through every waypoint, changing direction, members equal, clusters a full gap apart");
+console.log("people clusters: every part placed once, as a rectangle, mirrored, neighbours unalike");
+console.log("people assemble: together on the anchor, apart by halfway, bounded and staggered");

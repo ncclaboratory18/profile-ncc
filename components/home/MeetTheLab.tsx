@@ -1,79 +1,84 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  motion,
-  useMotionValue,
-  useTransform,
-  type MotionStyle,
-  type MotionValue,
-} from "motion/react";
+import { motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
 import { useReducedMotion } from "@/lib/reduced-motion";
 import { useSectionProgress } from "@/lib/useSectionProgress";
-import { Reveal } from "@/components/motion/Reveal";
 import {
-  ENTER_VECTORS,
-  EXIT_VECTORS,
-  FLIP_FROM,
-  FLIP_TO,
-  FULL_CHAPTERS,
-  OUTRO_FROM,
-  TITLE_END,
-  TOTAL_SCREENS,
+  HERO_DIRECTION,
+  ASSEMBLE_REACH,
+  LAB_CONFIG,
+  assembleOffset,
   clamp01,
-  counterAt,
+  depthOf,
+  heroScreens,
   labPeople,
-  phases,
-  railAt,
+  layoutFor,
+  membersPath,
   sequencePhotos,
   titlePhoto,
-  track,
   type LabPerson,
+  type MoverKind,
+  type PartKind,
 } from "@/lib/labPeople";
+import { memberAt, type Point } from "@/lib/labPath";
 
 /**
- * "People at Net-Centric Computing Lab" — a pinned, scroll-driven chapter of
- * the home page. The visitor scrolls and the section plays through: a
- * full-screen title panel whose headline is read by scrolling it sideways,
- * a wipe from the site's near-black to a light editorial canvas, four people
- * in full chapters, then seven in rapid passes.
+ * "Meet the amazing people at Net-Centric Computing Lab" — two pinned,
+ * scroll-driven stretches of the home page. First a headline far wider than
+ * the screen, slid sideways by the scroll. Then a large 2D canvas with every
+ * member scattered along a winding path, which the viewport travels like a
+ * camera — down-right, across, up-right, and on — so people arrive from the
+ * bottom, the side, or the top depending on which way the path is turning.
  *
- * Everything on screen is a pure function of one scroll position (`s`, in
- * screens), which is what makes scrolling back up run the sequence cleanly in
- * reverse — the usual place effects like this break. The timing and the
- * direction table live in `lib/labPeople.ts`; this file only draws them.
+ * Each member is one rigid cluster — photographs, text, description, card —
+ * laid out on a grid around its anchor and small enough to fit one screen,
+ * with a clear stretch of empty canvas before the next. The camera moves at
+ * constant speed along the path (scroll maps linearly to distance
+ * travelled), smoothed toward the scroll position each frame. Nothing ever
+ * fades: people enter and leave only by sliding past the edges of the
+ * screen. Every tunable is in `LAB_CONFIG` (`lib/labPeople.ts`); the path
+ * math is in `lib/labPath.ts`.
  *
- * Below `lg`, and under reduced motion, there is no pin at all: the same
- * eleven people render as a plain vertical sequence. Every name, role, and
- * description is in the DOM in reading order in both paths, so all eleven are
- * findable by a text search whether or not the sequence has played.
+ * Under reduced motion there is no pin and no animation at all: the headline
+ * sits still and the same clusters stack in a plain vertical sequence. Every
+ * name, role, and description is in the DOM in reading order in both paths.
  */
 export function MeetTheLab() {
   const reduce = useReducedMotion();
-  const desktop = useIsDesktop();
-
-  if (reduce || !desktop) return <StaticSequence animate={!reduce} />;
+  if (reduce) return <StaticSequence />;
   return <PinnedSequence />;
 }
+
+const HEADLINE = "Meet the amazing people at Net-Centric Computing Lab";
 
 /* ── The pinned sequence ─────────────────────────────────────────────── */
 
 function PinnedSequence() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const progress = useSectionProgress(sectionRef);
-  const view = useViewport();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const desktop = useIsDesktop();
 
-  // Nineteen photographs plus the title plate. They are held until the
-  // section is close, then loaded together, and the sequence does not start
-  // until they are in — a first scroll through a half-loaded pin stutters.
+  // Every photograph is held until the section is close, then loaded
+  // together, and the members' sequence does not start until they are in — a
+  // first scroll through a half-loaded pin stutters. The long headline pin
+  // in front gives them several screens to arrive.
   const [armed, setArmed] = useState(false);
   const [loaded, setLoaded] = useState(0);
   const gate = useMotionValue(0);
 
   useEffect(() => {
-    const el = sectionRef.current;
+    const el = rootRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -90,7 +95,7 @@ function PinnedSequence() {
 
   // Never a trap: the gate also opens on a timer once the section is armed.
   // A photograph that 404s, or a browser that drops a decode, must not leave
-  // the visitor pinned on the title panel with nowhere to scroll.
+  // the visitor pinned with nowhere to scroll.
   const [timedOut, setTimedOut] = useState(false);
   useEffect(() => {
     if (!armed) return;
@@ -105,464 +110,533 @@ function PinnedSequence() {
 
   const onPhoto = () => setLoaded((n) => n + 1);
 
-  // Scroll position in screens. Held at 0 until the photographs are in, so
-  // the pin never begins mid-load.
-  const s = useTransform([progress, gate], ([p, g]: number[]) =>
-    g ? (p as number) * TOTAL_SCREENS : 0,
+  return (
+    <div ref={rootRef}>
+      <HeroScroller desktop={desktop} armed={armed} onPhoto={onPhoto} />
+      <PinnedMembers desktop={desktop} gate={gate} armed={armed} onPhoto={onPhoto} />
+      <Outro />
+    </div>
   );
+}
 
-  const flip = useTransform(s, (v) => track(v, FLIP_FROM, FLIP_TO));
-  const clip = useTransform(flip, (w) => `inset(0 0 0 ${(1 - w) * 100}%)`);
-  const outro = useTransform(s, (v) => 1 - track(v, OUTRO_FROM, TOTAL_SCREENS));
+/* ── Part 1: the headline ────────────────────────────────────────────── */
+
+/**
+ * A tall section with a sticky screen inside it. The headline is set on one
+ * line at a size several screens wide, and the section's scroll progress is
+ * mapped straight onto its `translateX`: from its first words at the start
+ * to its last words at the end, so it reads in order as it slides right to
+ * left (flip with `HERO_DIRECTION`), and the whole sentence passes before
+ * the section unpins.
+ */
+function HeroScroller({
+  desktop,
+  armed,
+  onPhoto,
+}: {
+  desktop: boolean;
+  armed: boolean;
+  onPhoto: () => void;
+}) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const progress = useSectionProgress(sectionRef);
+
+  // How far the line has to travel: its width past the box it sits in.
+  // Measured by a ResizeObserver, so it follows viewport changes and the web
+  // font swapping in.
+  const travel = useRef(0);
+  useEffect(() => {
+    const el = titleRef.current;
+    const box = el?.parentElement;
+    if (!el || !box) return;
+    const measure = () => {
+      const pad = getComputedStyle(box);
+      const inner =
+        box.clientWidth - parseFloat(pad.paddingLeft) - parseFloat(pad.paddingRight);
+      travel.current = Math.max(0, el.offsetWidth - inner);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    ro.observe(box);
+    return () => ro.disconnect();
+  }, []);
+
+  const x = useTransform(progress, (p) => {
+    // -1: "MEET" on screen at the start, "…LAB" at the end.
+    const t = HERO_DIRECTION === 1 ? 1 - p : p;
+    return -t * travel.current;
+  });
+  const plateX = useTransform(progress, (p) => `${(p - 0.5) * 6}%`);
+  const plateScale = useTransform(progress, (p) => 1.1 + p * 0.1);
 
   return (
-    <>
+    <section
+      ref={sectionRef}
+      aria-labelledby="lab-people-heading"
+      className="relative bg-[#05070a] [overflow-x:clip]"
+      style={{ height: `calc((1 + ${heroScreens(desktop)}) * 100svh)` }}
+    >
+      <div className="sticky top-0 h-[100svh] overflow-hidden">
+        <motion.div style={{ x: plateX, scale: plateScale }} className="absolute inset-0">
+          {armed && (
+            <Image
+              src={titlePhoto}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              onLoad={onPhoto}
+              onError={onPhoto}
+              className="object-cover [filter:grayscale(0.7)_brightness(0.55)]"
+            />
+          )}
+        </motion.div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/85" />
+
+        <p className="absolute left-[5vw] top-[calc(64px+3vh)] font-mono text-[11px] uppercase tracking-[0.2em] text-white/70">
+          Meet the lab — {labPeople.length} people
+        </p>
+
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 overflow-hidden px-[3vw]">
+          <motion.h2
+            ref={titleRef}
+            id="lab-people-heading"
+            style={{ x }}
+            className="lab-hero-title w-max font-display font-bold uppercase tracking-[-0.02em] text-white"
+          >
+            {HEADLINE}
+          </motion.h2>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Part 2: the members ─────────────────────────────────────────────── */
+
+/** Cluster size and gaps from LAB_CONFIG, for the CSS in globals.css. */
+const CLUSTER_VARS = {
+  "--cluster-w": LAB_CONFIG.cluster.w,
+  "--cluster-h": LAB_CONFIG.cluster.h,
+  "--cluster-w-m": LAB_CONFIG.mobileCluster.w,
+  "--cluster-gap": `${LAB_CONFIG.gap}px`,
+  "--cluster-gap-m": `${LAB_CONFIG.mobileGap}px`,
+} as CSSProperties;
+
+/** Present only on the pinned path; the static path renders without it. */
+const LabCtx = createContext<{ armed: boolean; onPhoto: () => void } | null>(null);
+
+function PinnedMembers({
+  desktop,
+  gate,
+  armed,
+  onPhoto,
+}: {
+  desktop: boolean;
+  gate: MotionValue<number>;
+  armed: boolean;
+  onPhoto: () => void;
+}) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const screenRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const n = labPeople.length;
+
+  // The pinned screen's size. Read from the sticky element itself, which is
+  // 100svh tall, so a phone's address bar showing and hiding does not
+  // reshape the path under the visitor's finger.
+  const [size, setSize] = useState({ w: 1440, h: 900 });
+  useEffect(() => {
+    const el = screenRef.current;
+    if (!el) return;
+    const measure = () => {
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      setSize((s) => (s.w === w && s.h === h ? s : { w, h }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const { path, anchors } = useMemo(
+    () => membersPath(desktop, size.w, size.h),
+    [desktop, size],
+  );
+  const pinPx = path.length * LAB_CONFIG.scrollPerPathPx;
+
+  // Each member's cluster, moved as one piece by the camera loop for the
+  // whole-cluster parallax, and searched for the parts that assemble inside
+  // it. Nothing re-renders while scrolling.
+  const clusters = useRef<(HTMLElement | null)[]>([]);
+  const index = useMotionValue(0);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const canvas = canvasRef.current;
+    if (!section || !canvas) return;
+
+    const { w, h } = size;
+    const L = path.length;
+    const { smoothing, parallax } = LAB_CONFIG;
+
+    let current = 0;
+    let written = Number.NaN;
+    let snap = true;
+    let running = true;
+    let frame = 0;
+    let last = performance.now();
+
+    // The parts that assemble around each member's title, with the unit
+    // direction from the title's centre to theirs, read from layout. The
+    // offset last written is taken off before measuring, so the reading never
+    // depends on where the camera happened to be.
+    type Mover = { el: HTMLElement; kind: MoverKind; dx: number; dy: number; tx: number; ty: number };
+    let movers: Mover[][] = [];
+    const settled: boolean[] = [];
+    let needsMeasure = true;
+    const measure = () => {
+      const prev = new Map(movers.flat().map((m) => [m.el, m]));
+      movers = clusters.current.map((cluster) => {
+        const title = cluster?.querySelector<HTMLElement>("[data-lab-title]");
+        if (!cluster || !title) return [];
+        const t = title.getBoundingClientRect();
+        const tx = t.left + t.width / 2;
+        const ty = t.top + t.height / 2;
+        return [...cluster.querySelectorAll<HTMLElement>("[data-lab-move]")].map((el) => {
+          const old = prev.get(el);
+          const r = el.getBoundingClientRect();
+          const vx = r.left + r.width / 2 - (old?.tx ?? 0) - tx;
+          const vy = r.top + r.height / 2 - (old?.ty ?? 0) - ty;
+          const len = Math.hypot(vx, vy) || 1;
+          return {
+            el,
+            kind: el.dataset.labMove as MoverKind,
+            dx: vx / len,
+            dy: vy / len,
+            tx: old?.tx ?? 0,
+            ty: old?.ty ?? 0,
+          };
+        });
+      });
+      settled.length = 0;
+      needsMeasure = false;
+      written = Number.NaN;
+    };
+    document.fonts?.ready.then(() => {
+      needsMeasure = true;
+    });
+
+    const tick = (now: number) => {
+      frame = requestAnimationFrame(tick);
+      if (!running) return;
+
+      const rect = section.getBoundingClientRect();
+      const span = rect.height - h;
+      const p = span > 0 ? Math.min(Math.max(-rect.top / span, 0), 1) : 0;
+      const target = gate.get() ? p * L : 0;
+
+      // Frame-rate independent lerp: the same feel at 60Hz and 120Hz.
+      const k = 1 - Math.pow(1 - smoothing, (now - last) / (1000 / 60));
+      last = now;
+      current = snap || smoothing >= 1 ? target : current + (target - current) * k;
+      snap = false;
+
+      if (needsMeasure) measure();
+      if (Math.abs(current - written) < 0.05) return;
+      written = current;
+
+      const c = path.pointAt(current);
+      canvas.style.transform = `translate3d(${(w / 2 - c.x).toFixed(1)}px, ${(h / 2 - c.y).toFixed(1)}px, 0)`;
+
+      // Parallax relative to each cluster's own anchor: exactly in place when
+      // the camera is on the member, a few percent off as it moves away.
+      if (parallax) {
+        for (let i = 0; i < n; i++) {
+          const el = clusters.current[i];
+          if (!el) continue;
+          const d = depthOf(i) - 1;
+          const a = anchors[i];
+          el.style.transform = `translate3d(${((a.x - c.x) * d).toFixed(1)}px, ${((a.y - c.y) * d).toFixed(1)}px, 0)`;
+        }
+      }
+
+      // Assemble / disassemble: each part sits out from the title by an
+      // amount that eases to nothing as the camera reaches the member's
+      // anchor. A member already fully spread, and still beyond reach, is
+      // left alone — only the two or three nearest the camera are written.
+      const seg = L / n;
+      for (let i = 0; i < n; i++) {
+        const d = current / seg - 0.5 - i;
+        const far = Math.abs(d) >= ASSEMBLE_REACH;
+        if (far && settled[i]) continue;
+        settled[i] = far;
+        for (const m of movers[i] ?? []) {
+          const off = assembleOffset(d, m.kind, desktop);
+          m.tx = m.dx * off;
+          m.ty = m.dy * off;
+          m.el.style.transform = `translate3d(${m.tx.toFixed(1)}px, ${m.ty.toFixed(1)}px, 0)`;
+        }
+      }
+
+      index.set(memberAt(current, L, n));
+    };
+    frame = requestAnimationFrame(tick);
+
+    // Nothing to do while the section is nowhere near the screen. Coming
+    // back, the camera jumps to where it should be rather than gliding there
+    // from wherever it was left.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !running) snap = true;
+        running = entry.isIntersecting;
+      },
+      { rootMargin: "50% 0px" },
+    );
+    io.observe(section);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      io.disconnect();
+    };
+  }, [path, anchors, size, gate, index, n, desktop]);
+
+  const vars = {
+    "--lab-grid-angle": `${LAB_CONFIG.gridAngleDeg}deg`,
+    ...CLUSTER_VARS,
+  } as CSSProperties;
+
+  return (
+    <LabCtx.Provider value={{ armed, onPhoto }}>
       <section
         ref={sectionRef}
-        aria-labelledby="lab-people-heading"
-        className="relative bg-bg-primary"
-        style={{ height: `calc(${1 + TOTAL_SCREENS} * 100vh)` }}
+        aria-label="Lab members"
+        className="lab-dark relative [overflow-x:clip]"
+        style={{ height: `calc(${pinPx.toFixed(0)}px + 100svh)` }}
       >
-        <div className="sticky top-0 h-screen overflow-hidden">
-          <TitlePanel s={s} view={view} armed={armed} onPhoto={onPhoto} />
+        {/* The grid is on the pinned screen, so it stays put while the
+            canvas travels over it. */}
+        <div ref={screenRef} className="lab-blueprint sticky top-0 h-[100svh] overflow-hidden" style={vars}>
+          <div ref={canvasRef} data-lab-canvas className="absolute left-0 top-0 will-change-transform">
+            {labPeople.map((person, i) => (
+              <MemberPanel
+                key={person.id}
+                person={person}
+                index={i}
+                anchor={anchors[i]}
+                clusterRef={(el) => {
+                  clusters.current[i] = el;
+                }}
+              />
+            ))}
+          </div>
 
-          {/* The tonal flip. Everything below the title lives inside this
-              panel, so the wipe that reveals the light canvas reveals the
-              people with it. `.lab-light` re-declares the theme tokens, so
-              the type inside is light-theme ink whichever theme the rest of
-              the site is in. */}
-          <motion.div
-            style={{ clipPath: clip, opacity: outro }}
-            className="lab-light lab-blueprint absolute inset-0 bg-bg-primary"
-          >
-            {labPeople.map((person, i) =>
-              i < FULL_CHAPTERS ? (
-                <Chapter
-                  key={person.id}
-                  person={person}
-                  index={i}
-                  s={s}
-                  view={view}
-                  armed={armed}
-                  onPhoto={onPhoto}
-                />
-              ) : (
-                <Pass
-                  key={person.id}
-                  person={person}
-                  index={i}
-                  s={s}
-                  view={view}
-                  armed={armed}
-                  onPhoto={onPhoto}
-                />
-              ),
-            )}
-          </motion.div>
-
-          {/* The HUD reads over both the dark plate and the light canvas, so
-              it is drawn as a difference against whatever is under it rather
-              than switching colour at the flip. */}
-          <div className="pointer-events-none absolute inset-0 z-20 mix-blend-difference">
-            <p className="absolute left-[2vw] top-[calc(64px+2vh)] font-mono text-[11px] uppercase tracking-[0.2em] text-white">
-              Meet the lab
-            </p>
-            <Counter s={s} />
-            <Rail s={s} />
+          <div className="pointer-events-none absolute inset-0 z-20">
+            <Counter index={index} />
+            <Rail index={index} />
           </div>
         </div>
       </section>
-
-      <Outro />
-    </>
+    </LabCtx.Provider>
   );
 }
 
-/* ── Part 1: the title panel ─────────────────────────────────────────── */
-
-const TITLE_LINE = "People at Net-Centric Computing Lab";
-
-function TitlePanel({
-  s,
-  view,
-  armed,
-  onPhoto,
-}: {
-  s: MotionValue<number>;
-  view: Viewport;
-  armed: boolean;
-  onPhoto: () => void;
-}) {
-  // The headline drifts left while the plate behind it drifts right and
-  // enlarges, so the two layers separate. Nowhere near far enough to crop a
-  // letter — the whole line stays readable for the length of the panel.
-  const x = useTransform(s, (v) => -track(v, 0, TITLE_END) * view.current.w * 0.05);
-  const plateX = useTransform(s, (v) => track(v, 0, TITLE_END) * view.current.w * 0.08);
-  const plateScale = useTransform(s, (v) => 1.06 + track(v, 0, TITLE_END) * 0.14);
-  // Once the wipe has taken over there is nothing to see here; dropping it
-  // keeps a full-screen image out of the compositor for the rest of the
-  // section.
-  const opacity = useTransform(s, (v) => 1 - track(v, FLIP_FROM, FLIP_TO));
-
-  return (
-    <motion.div style={{ opacity }} className="absolute inset-0 overflow-hidden bg-[#05070a]">
-      <motion.div style={{ x: plateX, scale: plateScale }} className="absolute inset-0">
-        {armed && (
-          <Image
-            src={titlePhoto}
-            alt="The NCC Lab at work"
-            fill
-            priority
-            sizes="100vw"
-            onLoad={onPhoto}
-            onError={onPhoto}
-            className="object-cover [filter:grayscale(0.7)_brightness(0.55)]"
-          />
-        )}
-      </motion.div>
-      <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/85" />
-
-      <div className="absolute inset-0 flex items-center px-[3vw]">
-        <motion.h2 id="lab-people-heading" style={{ x }} className="w-full">
-          <span className="sr-only">{TITLE_LINE}</span>
-          {/* One line, edge to edge, at any width. `textLength` on the whole
-              line makes the browser fit the type to the box exactly — no
-              measuring pass, no font-size guess that wraps or overflows on
-              some viewport nobody tested. */}
-          <svg
-            aria-hidden
-            viewBox="0 0 1000 108"
-            preserveAspectRatio="xMidYMid meet"
-            className="block w-full overflow-visible"
-          >
-            <text
-              x="0"
-              y="86"
-              textLength="1000"
-              lengthAdjust="spacingAndGlyphs"
-              fill="currentColor"
-              className="fill-white font-display text-[100px] font-bold uppercase"
-            >
-              {TITLE_LINE}
-            </text>
-          </svg>
-        </motion.h2>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ── Movement one: the four full chapters ────────────────────────────── */
-
-type Box = [colStart: number, colSpan: number, rowStart: number, rowSpan: number];
-
-/**
- * Where each part of a chapter sits on the 12x12 stage. No two chapters use
- * the same arrangement — the name moves across the frame, the large
- * photograph moves with it, and the amount of empty space changes, so the
- * visitor cannot predict where the next name will appear.
- */
-const LAYOUTS: Record<
-  "num" | "role" | "name" | "lead" | "body" | "exp" | "link" | "a" | "b" | "c",
-  Box
->[] = [
-  // 01 — text-heavy left, photographs stacked right.
-  {
-    num: [1, 1, 1, 1],
-    role: [2, 5, 2, 1],
-    name: [2, 6, 3, 3],
-    lead: [2, 5, 6, 2],
-    body: [2, 4, 8, 2],
-    exp: [2, 3, 10, 2],
-    link: [2, 3, 12, 1],
-    a: [9, 4, 1, 7],
-    b: [7, 3, 8, 4],
-    c: [11, 2, 9, 3],
-  },
-  // 02 — the reverse: one tall photograph filling the left, name on the right.
-  {
-    num: [12, 1, 1, 1],
-    role: [8, 4, 3, 1],
-    name: [8, 5, 4, 3],
-    lead: [8, 4, 7, 2],
-    body: [8, 4, 9, 2],
-    exp: [8, 3, 11, 2],
-    link: [11, 2, 12, 1],
-    a: [1, 6, 1, 12],
-    b: [6, 2, 9, 4],
-    c: [9, 2, 1, 2],
-  },
-  // 03 — the name overlapping the top of the large photograph, text right.
-  {
-    num: [1, 1, 1, 1],
-    role: [10, 3, 2, 1],
-    name: [1, 8, 3, 3],
-    lead: [10, 3, 4, 3],
-    body: [10, 3, 7, 2],
-    exp: [10, 3, 9, 3],
-    link: [10, 3, 12, 1],
-    a: [1, 7, 5, 8],
-    b: [8, 2, 5, 4],
-    c: [8, 2, 10, 3],
-  },
-  // 04 — text left with a lot of air, the large photograph right and high.
-  {
-    num: [1, 1, 1, 1],
-    role: [1, 5, 3, 1],
-    name: [1, 6, 4, 3],
-    lead: [1, 5, 7, 2],
-    body: [1, 4, 9, 2],
-    exp: [1, 3, 11, 2],
-    link: [4, 3, 12, 1],
-    a: [8, 5, 1, 8],
-    b: [5, 3, 9, 3],
-    c: [9, 3, 10, 3],
-  },
-];
-
-function Chapter({
-  person,
-  index,
-  s,
-  view,
-  armed,
-  onPhoto,
-}: {
-  person: LabPerson;
-  index: number;
-  s: MotionValue<number>;
-  view: Viewport;
-  armed: boolean;
-  onPhoto: () => void;
-}) {
-  const L = LAYOUTS[index];
-  const common = { person, index, s, view };
-
-  return (
-    <div className="absolute inset-0 grid grid-cols-12 grid-rows-12 gap-x-[1.4vw] gap-y-[0.6vh] px-[5vw] pb-[5vh] pt-[calc(64px+4vh)]">
-      {/* The large photograph is the slowest thing in the frame and the small
-          type the fastest, so a chapter assembles in depth instead of sliding
-          in as one slab. */}
-      <Layer {...common} rate={0.5} box={L.a}>
-        <Photo src={person.photos[0]} alt={person.name} armed={armed} onPhoto={onPhoto} sizes="42vw" />
-      </Layer>
-      <Layer {...common} rate={0.68} box={L.b}>
-        <Photo src={person.photos[1]} alt="" armed={armed} onPhoto={onPhoto} sizes="26vw" />
-      </Layer>
-      <Layer {...common} rate={0.82} box={L.c}>
-        <Photo src={person.photos[2]} alt="" armed={armed} onPhoto={onPhoto} sizes="18vw" />
-      </Layer>
-
-      <Layer {...common} rate={1.3} box={L.num} className="items-start">
-        <span className="font-mono text-[clamp(2rem,4vw,3.4rem)] font-bold leading-none text-text-tertiary">
-          {String(index + 1).padStart(2, "0")}
-        </span>
-      </Layer>
-
-      <Layer {...common} rate={1.3} box={L.role} className="items-end">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-blue-text">
-          {person.role}
-        </p>
-      </Layer>
-
-      <Layer {...common} rate={1} box={L.name} className="items-center">
-        <h3 className="font-display text-[clamp(2.4rem,5.4vw,5.2rem)] font-semibold leading-[0.92] tracking-[-0.02em] text-text-primary">
-          {person.name}
-        </h3>
-      </Layer>
-
-      <Layer {...common} rate={1.15} box={L.lead} className="items-start">
-        <p className="max-w-[34ch] font-sans text-[clamp(1rem,1.5vw,1.5rem)] leading-[1.3] text-text-primary">
-          {person.lead}
-        </p>
-      </Layer>
-
-      <Layer {...common} rate={1.35} box={L.body} className="items-start">
-        <p className="max-w-[42ch] font-sans text-sm leading-relaxed text-text-secondary">
-          {person.body}
-        </p>
-      </Layer>
-
-      <Layer {...common} rate={1.45} box={L.exp} className="items-start">
-        <dl className="w-full">
-          {person.experience?.map((row) => (
-            <div
-              key={row.year}
-              className="flex gap-4 border-t border-hairline py-1.5 font-mono text-[11px] uppercase tracking-[0.12em]"
-            >
-              <dt className="text-accent-blue-text">{row.year}</dt>
-              <dd className="text-text-tertiary">{row.what}</dd>
-            </div>
-          ))}
-        </dl>
-      </Layer>
-
-      <Layer {...common} rate={1.45} box={L.link} className="items-end">
-        <Link
-          href="/research-team"
-          className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary underline-offset-4 hover:text-accent-blue-text hover:underline"
-        >
-          Full profile
-        </Link>
-      </Layer>
-    </div>
-  );
-}
-
-/* ── Movement two: the seven rapid passes ────────────────────────────── */
-
-const SIDE: Record<string, string> = {
-  left: "justify-start pl-[6vw] pr-[38vw]",
-  center: "justify-center px-[18vw]",
-  right: "justify-end pl-[38vw] pr-[6vw]",
-};
-
-function Pass({
-  person,
-  index,
-  s,
-  view,
-  armed,
-  onPhoto,
-}: {
-  person: LabPerson;
-  index: number;
-  s: MotionValue<number>;
-  view: Viewport;
-  armed: boolean;
-  onPhoto: () => void;
-}) {
-  const common = { person, index, s, view };
-
-  return (
-    <div
-      className={`absolute inset-0 flex items-center pt-16 ${SIDE[person.side ?? "center"]}`}
-    >
-      <Layer {...common} rate={0.72} className="w-[16vw] max-w-[220px] shrink-0">
-        <div className="aspect-[4/5] w-full">
-          <Photo src={person.photos[0]} alt={person.name} armed={armed} onPhoto={onPhoto} sizes="16vw" />
-        </div>
-      </Layer>
-
-      <Layer {...common} rate={1.18} className="ml-[2vw] min-w-0 flex-1">
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-text-tertiary">
-            {String(index + 1).padStart(2, "0")} — {person.role}
-          </p>
-          <h3 className="mt-2 font-display text-[clamp(2rem,4.4vw,4rem)] font-semibold leading-[0.95] tracking-[-0.02em] text-text-primary">
-            {person.name}
-          </h3>
-          <p className="mt-3 max-w-[40ch] font-sans text-base leading-snug text-text-secondary">
-            {person.line}
-          </p>
-        </div>
-      </Layer>
-    </div>
-  );
-}
-
-/* ── One moving part ─────────────────────────────────────────────────── */
-
-/**
- * A single part of a chapter or a pass. `rate` scales how far it travels: the
- * large photograph is slow, the small type fast. Every value here is derived
- * from `s` alone, so reversing the scroll reverses the movement — each person
- * re-enters from the direction they left.
- */
-function Layer({
-  person,
-  index,
-  s,
-  view,
-  rate,
-  box,
-  className = "",
+/** One part of a member: a cell of their cluster's grid. Every part but the
+ *  text slides as a whole when the cluster assembles. */
+function Part({
+  kind,
+  moves = true,
   children,
 }: {
-  person: LabPerson;
-  index: number;
-  s: MotionValue<number>;
-  view: Viewport;
-  rate: number;
-  box?: Box;
-  className?: string;
+  kind: PartKind;
+  moves?: boolean;
   children: ReactNode;
 }) {
-  const inV = ENTER_VECTORS[person.enter];
-  const outV = EXIT_VECTORS[person.exit];
-  const depth = person.enter === "behind" || person.exit === "back";
-
-  const transform = useTransform(s, (v) => {
-    const { enter, exit } = phases(v, index);
-    const { w, h } = view.current;
-    const x = (inV.x * (1 - enter) + outV.x * exit) * w * rate;
-    const y = (inV.y * (1 - enter) + outV.y * exit) * h * rate;
-    const scale =
-      1 + (inV.scale - 1) * (1 - enter) + (outV.scale - 1) * exit;
-    return `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
-  });
-
-  const opacity = useTransform(s, (v) => {
-    const { enter, exit } = phases(v, index);
-    return clamp01(enter * 1.25) * (1 - exit);
-  });
-
-  const filter = useTransform(s, (v) => {
-    const { enter, exit } = phases(v, index);
-    const blur = inV.blur * (1 - enter) + outV.blur * exit;
-    return blur < 0.15 ? "none" : `blur(${blur.toFixed(2)}px)`;
-  });
-
-  // A chapter that has not arrived still covers the screen, so its links
-  // would sit invisibly over the one that has. Off until it is actually up.
-  const pointerEvents = useTransform(opacity, (o) => (o > 0.5 ? "auto" : "none"));
-
-  const style: MotionStyle = { transform, opacity, pointerEvents };
-  if (depth) style.filter = filter;
-  if (box) {
-    style.gridColumn = `${box[0]} / span ${box[1]}`;
-    style.gridRow = `${box[2]} / span ${box[3]}`;
-  }
-
   return (
-    <motion.div
-      style={style}
-      className={`flex min-w-0 flex-col justify-center ${className}`}
-    >
+    <div className={`lab-part lab-part--${kind}`} data-lab-move={moves ? kind : undefined}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
-/** A photograph in its frame, drifting slightly the whole time it is on screen. */
-function Photo({
-  src,
-  alt,
-  armed,
-  onPhoto,
-  sizes,
+/**
+ * The one template every member is drawn from, as a single cluster: a big
+ * photograph and a second one, the text block (rule, dot, research area,
+ * name, headline), the profile photograph beside the longer description, and
+ * the details card. The parts sit in the cells of one grid with fixed gaps,
+ * arranged by `layoutFor(index)` on desktop so neighbours never look alike,
+ * and stacked on phones. A field the member has no data for is simply not
+ * rendered.
+ */
+function MemberPanel({
+  person,
+  index,
+  anchor,
+  clusterRef,
+  flow = false,
 }: {
-  src: string;
-  alt: string;
-  armed: boolean;
-  onPhoto: () => void;
-  sizes: string;
+  person: LabPerson;
+  index: number;
+  /** Where the member sits on the canvas, in px. Omitted in flow. */
+  anchor?: Point;
+  clusterRef?: (el: HTMLElement | null) => void;
+  /** Normal flow instead of the canvas (reduced motion). */
+  flow?: boolean;
 }) {
+  const [profile, wide, accent] = person.photos;
+  const hasCard = !!(person.skills?.length || person.experience?.length);
+  const L = layoutFor(index);
+  const grid = { "--cols": L.columns, "--rows": L.rows, "--areas": L.areas } as CSSProperties;
+
   return (
-    <div className="relative h-full w-full overflow-hidden bg-bg-surface-raised">
+    <article
+      ref={clusterRef}
+      aria-label={person.name}
+      style={anchor ? { left: anchor.x, top: anchor.y } : undefined}
+      className={`lab-member ${flow ? "lab-member--flow" : ""}`}
+    >
+      <div className="lab-cluster" style={grid}>
+        <Part kind="text" moves={false}>
+          <div className="lab-m-head">
+            <div className="lab-m-label" data-lab-move="label">
+              <div className="lab-m-rule" />
+              <p className="lab-m-role">
+                <span aria-hidden className="lab-m-dot" />
+                <span className="font-mono text-text-tertiary">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                {person.role}
+              </p>
+            </div>
+            {/* The still centre the other parts gather around. */}
+            <div className="lab-m-title" data-lab-title>
+              <h3 className="lab-m-name">{person.name}</h3>
+              {person.lead && <p className="lab-m-lead">{person.lead}</p>}
+            </div>
+          </div>
+        </Part>
+
+        <Part kind="detail">
+          <div className="lab-m-detail">
+            {profile && (
+              <div className="lab-m-profile">
+                <Photo src={profile} alt={person.name} sizes="(min-width: 1024px) 8vw, 25vw" />
+              </div>
+            )}
+            <div className="min-w-0">
+              {person.body && <p className="lab-m-body">{person.body}</p>}
+              <Link
+                href="/research-team"
+                className="mt-3 inline-block font-mono text-[11px] uppercase tracking-[0.16em] text-text-secondary underline-offset-4 hover:text-accent-blue-text hover:underline"
+              >
+                Full profile
+              </Link>
+            </div>
+          </div>
+        </Part>
+
+        {hasCard && (
+          <Part kind="card">
+            <DetailsCard person={person} />
+          </Part>
+        )}
+
+        {wide && (
+          <Part kind="photo">
+            <Photo src={wide} alt="" sizes="(min-width: 1024px) 26vw, 55vw" />
+          </Part>
+        )}
+
+        {accent && (
+          <Part kind="accent">
+            <Photo src={accent} alt="" sizes="(min-width: 1024px) 22vw, 35vw" />
+          </Part>
+        )}
+      </div>
+    </article>
+  );
+}
+
+/** Skills, and the timeline one entry at a time with prev/next arrows. */
+function DetailsCard({ person }: { person: LabPerson }) {
+  const rows = person.experience ?? [];
+  const [i, setI] = useState(0);
+  const row = rows[i];
+  const step = (d: number) => setI((n) => (n + d + rows.length) % rows.length);
+
+  return (
+    <div className="flex h-full flex-col justify-between gap-3 rounded-2xl border border-hairline bg-bg-surface-raised/80 p-4 backdrop-blur-sm">
+      {person.skills?.length ? (
+        <ul aria-label="Skills" className="flex flex-wrap gap-1.5">
+          {person.skills.map((skill) => (
+            <li
+              key={skill}
+              className="rounded-full border border-hairline px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-secondary"
+            >
+              {skill}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {row && (
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-accent-blue-text">
+            {row.year}
+          </p>
+          <p className="mt-1 font-sans text-sm leading-snug text-text-primary">{row.what}</p>
+          {rows.length > 1 && (
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => step(-1)}
+                aria-label="Previous"
+                className="flex h-8 w-10 -skew-x-6 items-center justify-center border border-hairline-strong text-text-primary hover:border-accent-blue-text"
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                onClick={() => step(1)}
+                aria-label="Next"
+                className="flex h-8 w-10 -skew-x-6 items-center justify-center border border-hairline-strong text-text-primary hover:border-accent-blue-text"
+              >
+                →
+              </button>
+              <span className="ml-1 font-mono text-[10px] text-text-tertiary">
+                {i + 1} / {rows.length}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** A photograph with rounded corners, drifting slightly the whole time it is on screen. */
+function Photo({ src, alt, sizes }: { src: string; alt: string; sizes: string }) {
+  const lab = useContext(LabCtx);
+  const armed = lab ? lab.armed : true;
+
+  return (
+    <div className="relative h-full w-full overflow-hidden rounded-xl bg-bg-surface-raised">
       {armed && (
         <Image
           src={src}
           alt={alt}
           fill
           sizes={sizes}
-          // Eager on purpose. Every photograph but the first is translated
-          // off-screen at rest, so next/image's lazy loader would never fetch
-          // it, the load count would never complete, and the pin would never
-          // release. `armed` is the throttle here, not the viewport.
-          loading="eager"
-          onLoad={onPhoto}
-          onError={onPhoto}
+          // Eager on the pinned path, on purpose. Most of the canvas is off
+          // screen at rest, so next/image's lazy loader would never fetch it,
+          // the load count would never complete, and the gate would only open
+          // on its timer. `armed` is the throttle there, not the viewport.
+          loading={lab ? "eager" : "lazy"}
+          onLoad={lab?.onPhoto}
+          onError={lab?.onPhoto}
           className="lab-drift object-cover"
         />
       )}
@@ -572,29 +646,25 @@ function Photo({
 
 /* ── The counter and the progress rail ───────────────────────────────── */
 
-/**
- * `00 / 11` through `11 / 11`, digits sliding rather than switching. Each
- * column is a strip of the glyphs that column actually shows, indexed by one
- * continuous position — so the roll speeds up through the second movement on
- * its own, which quietly tells the visitor the section is nearly over.
- */
-const TENS = ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1", "1"];
-const ONES = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "1"];
+const COUNTS = Array.from({ length: labPeople.length + 1 }, (_, k) => k);
+const TENS = COUNTS.map((k) => String(Math.floor(k / 10) % 10));
+const ONES = COUNTS.map((k) => String(k % 10));
 
-function Counter({ s }: { s: MotionValue<number> }) {
-  const n = useTransform(s, counterAt);
+/** `01 / 11` onward, following whichever member the camera is nearest. */
+function Counter({ index }: { index: MotionValue<number> }) {
+  const n = useTransform(index, (v) => v + 1);
 
   return (
     <div className="absolute right-[2vw] top-[calc(64px+2vh)] flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.2em] text-white">
       <Digits n={n} glyphs={TENS} />
       <Digits n={n} glyphs={ONES} />
-      <span className="ml-1">/ 11</span>
+      <span className="ml-1 text-white/60">/ {String(labPeople.length).padStart(2, "0")}</span>
     </div>
   );
 }
 
 function Digits({ n, glyphs }: { n: MotionValue<number>; glyphs: string[] }) {
-  const y = useTransform(n, (v) => `-${clamp01(v / (glyphs.length - 1)) * (glyphs.length - 1)}em`);
+  const y = useTransform(n, (v) => `-${Math.min(Math.max(v, 0), glyphs.length - 1)}em`);
   return (
     <span className="block h-[1em] overflow-hidden leading-[1em]">
       <motion.span style={{ y }} className="block will-change-transform">
@@ -608,35 +678,29 @@ function Digits({ n, glyphs }: { n: MotionValue<number>; glyphs: string[] }) {
   );
 }
 
-/**
- * Eleven ticks: four widely spaced, then seven close together, so the shape
- * of the rail itself shows the change of pace and the visitor can always see
- * how much is left.
- */
-function Rail({ s }: { s: MotionValue<number> }) {
+/** One tick per member, evenly spaced; the nearest member's is extended.
+ *  Width only — the ticks never dim. */
+function Rail({ index }: { index: MotionValue<number> }) {
   return (
     <div
       aria-hidden
       className="absolute right-[2vw] top-1/2 h-[38vh] w-px -translate-y-1/2 bg-white/25"
     >
       {labPeople.map((person, i) => (
-        <Tick key={person.id} s={s} index={i} />
+        <Tick key={person.id} index={index} member={i} />
       ))}
     </div>
   );
 }
 
-function Tick({ s, index }: { s: MotionValue<number>; index: number }) {
-  const active = useTransform(s, (v) => {
-    const { enter, exit } = phases(v, index);
-    return enter * (1 - exit * 0.85);
-  });
-  const width = useTransform(active, (a) => `${8 + a * 16}px`);
-  const opacity = useTransform(active, (a) => 0.3 + a * 0.7);
+function Tick({ index, member }: { index: MotionValue<number>; member: number }) {
+  const active = useTransform(index, (v) => clamp01(1 - Math.abs(v - member)));
+  const width = useTransform(active, (a) => `${6 + a * 18}px`);
+  const n = labPeople.length;
 
   return (
     <motion.span
-      style={{ top: `${railAt(index) * 100}%`, width, opacity }}
+      style={{ top: `${(n > 1 ? member / (n - 1) : 0) * 100}%`, width }}
       className="absolute right-0 block h-[2px] bg-white"
     />
   );
@@ -646,8 +710,8 @@ function Tick({ s, index }: { s: MotionValue<number>; index: number }) {
 
 function Outro() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
-      <Reveal>
+    <div className="lab-dark">
+      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
         <p className="max-w-[46ch] font-sans text-lg leading-relaxed text-text-secondary">
           Eleven of us, and the work is the sum of what each one brought in.
         </p>
@@ -657,177 +721,55 @@ function Outro() {
         >
           The full roster
         </Link>
-      </Reveal>
+      </div>
     </div>
   );
 }
 
-/* ── Phones, and reduced motion ──────────────────────────────────────── */
+/* ── Reduced motion ──────────────────────────────────────────────────── */
 
 /**
- * No pin. Mobile viewports resize as the address bar hides, which a pinned
- * sequence cannot survive, and a headline travelling sideways is unreadable
- * on a narrow screen. The size mismatch between a chapter's photographs and
- * the light canvas are both kept; with `animate` off nothing moves at all and
- * everything renders in its final position.
+ * No pin, no sideways headline, and no animation of any kind. The headline
+ * wraps at a size that fits, and each member is the same cluster, stacked in
+ * normal flow and simply there.
  */
-function StaticSequence({ animate }: { animate: boolean }) {
-  const Rise = animate ? Reveal : Passthrough;
-
+function StaticSequence() {
   return (
-    <section aria-labelledby="lab-people-heading" className="lab-light lab-blueprint bg-bg-primary">
-      <div className="relative overflow-hidden">
+    <>
+      <section aria-labelledby="lab-people-heading" className="relative overflow-hidden bg-[#05070a]">
         <Image
           src={titlePhoto}
-          alt="The NCC Lab at work"
+          alt=""
           fill
           sizes="100vw"
           className="object-cover [filter:grayscale(0.7)_brightness(0.5)]"
         />
         <div className="absolute inset-0 bg-black/60" />
-        <div className="relative px-4 py-24 sm:px-6">
+        <div className="relative px-[5vw] py-28">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/70">
-            Meet the lab
+            Meet the lab — {labPeople.length} people
           </p>
-          <Rise>
-            <h2
-              id="lab-people-heading"
-              className="mt-4 font-display text-[13vw] font-bold uppercase leading-[0.9] tracking-[-0.02em] text-white sm:text-6xl"
-            >
-              {["People at", "Net-Centric", "Computing Lab"].map((line) => (
-                <span key={line} className="block">
-                  {line}
-                </span>
-              ))}
-            </h2>
-          </Rise>
+          <h2
+            id="lab-people-heading"
+            className="mt-4 font-display text-[11vw] font-bold uppercase leading-[0.9] tracking-[-0.02em] text-white lg:text-[7vw]"
+          >
+            {HEADLINE}
+          </h2>
         </div>
-      </div>
+      </section>
 
-      <div className="px-4 py-16 sm:px-6">
-        {labPeople.slice(0, FULL_CHAPTERS).map((person, i) => (
-          <Rise key={person.id}>
-            <article className="border-t border-hairline py-12 first:border-t-0 first:pt-0">
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-blue-text">
-                {String(i + 1).padStart(2, "0")} — {person.role}
-              </p>
-              <h3 className="mt-3 font-display text-4xl font-semibold leading-[0.95] tracking-[-0.02em] text-text-primary">
-                {person.name}
-              </h3>
-              <p className="mt-5 font-sans text-xl leading-snug text-text-primary">
-                {person.lead}
-              </p>
-
-              {/* The mismatch between the three sizes is the composition, so
-                  it survives the collapse to one column. */}
-              <div className="mt-6 grid grid-cols-6 gap-3">
-                <div className="relative col-span-6 aspect-[4/5]">
-                  <StackPhoto src={person.photos[0]} alt={person.name} sizes="92vw" />
-                </div>
-                <div className="relative col-span-4 aspect-[4/3]">
-                  <StackPhoto src={person.photos[1]} alt="" sizes="60vw" />
-                </div>
-                <div className="relative col-span-2 aspect-square">
-                  <StackPhoto src={person.photos[2]} alt="" sizes="30vw" />
-                </div>
-              </div>
-
-              <p className="mt-6 max-w-[46ch] font-sans text-sm leading-relaxed text-text-secondary">
-                {person.body}
-              </p>
-              <dl className="mt-6 max-w-xs">
-                {person.experience?.map((row) => (
-                  <div
-                    key={row.year}
-                    className="flex gap-4 border-t border-hairline py-1.5 font-mono text-[11px] uppercase tracking-[0.12em]"
-                  >
-                    <dt className="text-accent-blue-text">{row.year}</dt>
-                    <dd className="text-text-tertiary">{row.what}</dd>
-                  </div>
-                ))}
-              </dl>
-              <Link
-                href="/research-team"
-                className="mt-5 inline-block font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary underline-offset-4 hover:text-accent-blue-text hover:underline"
-              >
-                Full profile
-              </Link>
-            </article>
-          </Rise>
+      <section aria-label="Lab members" className="lab-dark lab-blueprint" style={CLUSTER_VARS}>
+        {labPeople.map((person, i) => (
+          <MemberPanel key={person.id} person={person} index={i} flow />
         ))}
+      </section>
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 border-t border-hairline pt-10">
-          {labPeople.slice(FULL_CHAPTERS).map((person, i) => (
-            <Rise key={person.id}>
-              <article>
-                <div className="relative aspect-[4/5] w-full">
-                  <StackPhoto src={person.photos[0]} alt={person.name} sizes="46vw" />
-                </div>
-                <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-text-tertiary">
-                  {String(FULL_CHAPTERS + i + 1).padStart(2, "0")} — {person.role}
-                </p>
-                <h3 className="mt-1 font-display text-lg font-semibold leading-tight text-text-primary">
-                  {person.name}
-                </h3>
-                <p className="mt-2 font-sans text-sm leading-snug text-text-secondary">
-                  {person.line}
-                </p>
-              </article>
-            </Rise>
-          ))}
-        </div>
-
-        <p className="mt-14 max-w-[46ch] font-sans text-lg leading-relaxed text-text-secondary">
-          Eleven of us, and the work is the sum of what each one brought in.
-        </p>
-        <Link
-          href="/research-team"
-          className="mt-4 inline-block font-mono text-[11px] uppercase tracking-[0.16em] text-accent-blue-text underline-offset-4 hover:underline"
-        >
-          The full roster
-        </Link>
-      </div>
-    </section>
+      <Outro />
+    </>
   );
-}
-
-function StackPhoto({ src, alt, sizes }: { src: string; alt: string; sizes: string }) {
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      fill
-      sizes={sizes}
-      className="bg-bg-surface-raised object-cover"
-    />
-  );
-}
-
-function Passthrough({ children }: { children: ReactNode }) {
-  return <>{children}</>;
 }
 
 /* ── Small hooks ─────────────────────────────────────────────────────── */
-
-type Viewport = { current: { w: number; h: number } };
-
-/**
- * Viewport size in a ref rather than state: the transforms read it on every
- * animation frame, and reading `window.innerWidth` there instead would force
- * a layout for each of the forty-odd moving parts.
- */
-function useViewport(): Viewport {
-  const view = useRef({ w: 1440, h: 900 });
-  useEffect(() => {
-    const measure = () => {
-      view.current = { w: window.innerWidth, h: window.innerHeight };
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, []);
-  return view;
-}
 
 /** False on the server and through hydration, so the markup always agrees. */
 function useIsDesktop(): boolean {

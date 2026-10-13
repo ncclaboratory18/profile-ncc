@@ -451,50 +451,232 @@ a, button, [role="button"], summary, label {
 
 
 /* ── Meet the Lab: the pinned people sequence ────────────────────────────
-   The one bright stretch on a near-black site. `.lab-light` re-declares the
-   theme tokens on the panel itself, so every `text-text-primary` /
-   `border-hairline` utility inside resolves to light-theme ink without a
-   single component knowing which theme the rest of the page is in — and the
-   section reads the same whichever theme the visitor picked.
+   Tunables for this section live in two places: `LAB_CONFIG` in
+   `lib/labPeople.ts` (scroll, path, cluster size and gaps, parallax) and
+   the headline size here (`--lab-hero-size`). */
 
-   Values are the light theme's, verbatim; if the inversion ever fights the
-   rest of the site too hard, the fallback is to lift `--bg-primary` a step
-   from near-black here instead and leave everything below untouched. */
-.lab-light {
-  color-scheme: light;
-
-  --bg-primary: #f3f1ec;
-  --bg-surface: #ffffff;
-  --bg-surface-raised: #e7e3db;
-  --bg-surface-active: #d8d2c7;
-
-  --accent-blue: #0e74bc;
-  --accent-blue-hover: #0b5c96;
-  --accent-blue-text: #0e74bc;
-
-  --text-primary: #0b0f14;
-  --text-secondary: rgba(11, 15, 20, 0.72);
-  --text-tertiary: rgba(11, 15, 20, 0.5);
-
-  --hairline: rgba(11, 15, 20, 0.26);
-  --hairline-strong: rgba(11, 15, 20, 0.52);
+/* The headline: one line, far wider than the screen, so only three or four
+   words are ever on it at once. The pinned container around it clips the
+   overflow; scroll moves it sideways. */
+.lab-hero-title {
+  --lab-hero-size: 11vw;
+  font-size: var(--lab-hero-size);
+  line-height: 0.9;
+  white-space: nowrap;
+  will-change: transform;
+}
+@media (min-width: 1024px) {
+  .lab-hero-title {
+    --lab-hero-size: 8.5vw;
+  }
 }
 
-/* Blueprint ruling behind the people: barely visible, but it gives the
-   deliberately mismatched photograph sizes something to align to and keeps
-   the lab's engineering character on a page that has just gone bright. */
+/* The members' canvas is always dark, whichever theme the rest of the site
+   is in. `.lab-dark` re-declares the theme tokens on the section itself, so
+   every `text-text-primary` / `border-hairline` utility inside resolves to
+   light-on-dark ink without a single component knowing the theme. */
+.lab-dark {
+  color-scheme: dark;
+
+  /* Near-black with a navy cast — the navbar's navy over the site's black. */
+  --lab-bg: #060914;
+  --bg-primary: var(--lab-bg);
+  --bg-surface: #0a1236;
+  --bg-surface-raised: #141a33;
+  --bg-surface-active: #272e4e;
+
+  --accent-blue: #0e74bc;
+  --accent-blue-hover: #3289c6;
+  --accent-blue-text: #3b9fe0;
+
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.72);
+  --text-tertiary: rgba(255, 255, 255, 0.5);
+
+  --hairline: rgba(255, 255, 255, 0.14);
+  --hairline-strong: rgba(255, 255, 255, 0.32);
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Skewed blueprint grid: horizontals stay level, the verticals lean by
+   `--lab-grid-angle` (set from LAB_CONFIG). It sits on the pinned screen, not
+   the canvas, so it stays put while the camera travels. */
 .lab-blueprint {
+  --lab-grid-angle: 12deg;
+  background-color: var(--lab-bg);
   background-image:
     repeating-linear-gradient(
-      to right,
-      rgba(11, 15, 20, 0.07) 0 1px,
-      transparent 1px 6.25vw
+      calc(90deg + var(--lab-grid-angle)),
+      rgba(255, 255, 255, 0.05) 0 1px,
+      transparent 1px 7vw
     ),
     repeating-linear-gradient(
       to bottom,
-      rgba(11, 15, 20, 0.07) 0 1px,
-      transparent 1px 8.33vh
+      rgba(255, 255, 255, 0.05) 0 1px,
+      transparent 1px 9vh
     );
+}
+
+/* One template for every member: a single cluster of five parts (photo,
+   accent, text, detail, card) in one grid with fixed gaps, so the parts can
+   never drift apart or overlap. The member itself is a zero-size point at
+   its anchor on the canvas (the camera loop moves it for parallax); the
+   cluster is centred on that point.
+   Phones: one column — photographs, text, description, card.
+   Desktop: `LAB_CONFIG.cluster.w` wide, as tall as its content up to
+   `LAB_CONFIG.cluster.h`, arranged by `--cols
+   --rows --areas` from `layoutFor()`. Sizes and gaps come in as variables
+   set from LAB_CONFIG on the pinned screen. */
+.lab-member {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+.lab-cluster {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  width: calc(var(--cluster-w-m, 82) * 1vw);
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-rows: clamp(96px, 14svh, 150px) auto auto auto;
+  grid-template-areas:
+    "photo accent"
+    "text text"
+    "detail detail"
+    "card card";
+  gap: var(--cluster-gap-m, 20px);
+}
+.lab-part {
+  min-width: 0;
+  min-height: 0;
+}
+.lab-part--photo {
+  grid-area: photo;
+}
+.lab-part--accent {
+  grid-area: accent;
+}
+.lab-part--card {
+  grid-area: card;
+}
+.lab-part--text {
+  grid-area: text;
+}
+.lab-part--detail {
+  grid-area: detail;
+}
+
+/* The text cell: the label (rule and research area), which slides with the
+   other parts as the cluster assembles, over the title (name and headline),
+   which is the still centre they gather around. */
+.lab-m-head {
+  display: grid;
+  gap: 0.5rem;
+}
+.lab-m-rule {
+  border-top: 1px solid var(--hairline-strong);
+}
+.lab-m-title {
+  display: grid;
+  gap: 0.5rem;
+}
+.lab-m-role {
+  padding-top: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font: 500 11px var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-blue-text);
+}
+.lab-m-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.lab-m-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 7vw, 2.2rem);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.lab-m-lead {
+  font-size: 0.95rem;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+.lab-m-detail {
+  display: flex;
+  gap: 0.9rem;
+}
+.lab-m-profile {
+  flex: none;
+  width: 20vw;
+  max-width: 88px;
+  aspect-ratio: 1;
+}
+.lab-m-body {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .lab-cluster {
+    width: calc(var(--cluster-w, 76) * 1vw);
+    max-height: calc(var(--cluster-h, 70) * 1vh);
+    grid-template-columns: var(--cols);
+    grid-template-rows: var(--rows);
+    grid-template-areas: var(--areas);
+    gap: var(--cluster-gap, 32px);
+  }
+  .lab-m-name {
+    font-size: clamp(1.9rem, 2.5vw, 3rem);
+  }
+  .lab-m-lead {
+    font-size: clamp(1rem, 1.15vw, 1.3rem);
+    max-width: 38ch;
+  }
+  .lab-m-detail {
+    gap: 1.25rem;
+  }
+  .lab-m-profile {
+    width: 7vw;
+    max-width: 120px;
+  }
+  .lab-m-body {
+    font-size: 0.875rem;
+    -webkit-line-clamp: 6;
+  }
+}
+
+/* Reduced motion: no canvas, no camera, no animation — each member's
+   cluster sits in normal flow, a screen apart. */
+.lab-member--flow {
+  position: relative;
+  width: auto;
+  height: auto;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 4rem 0;
+}
+.lab-member--flow .lab-cluster {
+  position: relative;
+  transform: none;
 }
 
 /* Photographs are never quite still. Compositor-only, and the global
